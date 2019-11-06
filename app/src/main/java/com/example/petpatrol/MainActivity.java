@@ -40,17 +40,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
 
+        initializeUserInfo();
+        activateOnClickListeners();
+        initializeGoogleAuth();
+    }
+
+    private void initializeUserInfo() {
         userInfo = findViewById(R.id.status);
         userInfoDetail = findViewById(R.id.detail);
+    }
 
+    private void activateOnClickListeners() {
         findViewById(R.id.signInButton).setOnClickListener(this);
         findViewById(R.id.signOutButton).setOnClickListener(this);
         findViewById(R.id.disconnectButton).setOnClickListener(this);
+    }
 
+    private void initializeGoogleAuth() {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(
                 GoogleSignInOptions.DEFAULT_SIGN_IN).requestIdToken(
-                        getString(R.string.default_web_client_id)
-                )
+                getString(R.string.default_web_client_id)
+        )
                 .requestEmail()
                 .build();
 
@@ -106,52 +116,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
     }
 
-    private void signIn() {
-        Intent signInIntent = authClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
-    }
-
-    private void signOut() {
-        firebase.signOut();
-
-        authClient.signOut().addOnCompleteListener(this,
-                new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        updateUI(null);
-                    }
-                });
-    }
-
-    private void revokeAccess() {
-        firebase.signOut();
-
-        authClient.revokeAccess().addOnCompleteListener(this,
-                new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        updateUI(null);
-                    }
-                });
-    }
-
-    private void updateUI(FirebaseUser user) {
-        hideProgressDialog();
-        if (user != null) {
-            userInfo.setText(getString(R.string.google_status_fmt, user.getEmail()));
-            userInfoDetail.setText(getString(R.string.firebase_status_fmt, user.getUid()));
-
-            findViewById(R.id.signInButton).setVisibility(View.GONE);
-            findViewById(R.id.signOutAndDisconnect).setVisibility(View.VISIBLE);
-        } else {
-            userInfo.setText(R.string.signed_out);
-            userInfoDetail.setText(null);
-
-            findViewById(R.id.signInButton).setVisibility(View.VISIBLE);
-            findViewById(R.id.signOutAndDisconnect).setVisibility(View.GONE);
-        }
-    }
-
     private void showProgressDialog(){
         if(progressDialog == null ) {
             progressDialog = new ProgressDialog(this);
@@ -166,6 +130,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             progressDialog.dismiss();
         }
     }
+    private void updateUI(FirebaseUser user) {
+        hideProgressDialog();
+        if (user != null) {
+            userInfo.setText(getString(R.string.google_status_fmt, user.getEmail()));
+            userInfoDetail.setText(getString(R.string.firebase_status_fmt, user.getUid()));
+
+            setButtonVisibility(View.GONE, View.VISIBLE);
+        } else {
+            userInfo.setText(R.string.signed_out);
+            userInfoDetail.setText(null);
+
+            setButtonVisibility(View.VISIBLE, View.GONE);
+        }
+    }
+
+    private void setButtonVisibility(int signIn, int signOutandDisconnect) {
+        findViewById(R.id.signInButton).setVisibility(signIn);
+        findViewById(R.id.signOutAndDisconnect).setVisibility(signOutandDisconnect);
+    }
 
     @Override
     public void onClick(View v) {
@@ -177,5 +160,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (i == R.id.disconnectButton) {
             revokeAccess();
         }
+    }
+
+    private void signIn() {
+        Intent signInIntent = authClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    private void signOut() {
+        firebase.signOut();
+        authClient.signOut().addOnCompleteListener(this,
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        updateUI(null);
+                    }
+                });
+    }
+
+    private void revokeAccess() {
+        firebase.signOut();
+        authClient.revokeAccess().addOnCompleteListener(this,
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        updateUI(null);
+                    }
+                });
     }
 }
