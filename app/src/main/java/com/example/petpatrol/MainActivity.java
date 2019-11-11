@@ -147,7 +147,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void setButtonVisibility(int signIn, int signOutandDisconnect) {
         findViewById(R.id.signInButton).setVisibility(signIn);
-        findViewById(R.id.signOutAndDisconnect).setVisibility(signOutandDisconnect);
+        findViewById(R.id.signOutButton).setVisibility(signOutandDisconnect);
+        findViewById(R.id.disconnectButton).setVisibility(signOutandDisconnect);
     }
 
     @Override
