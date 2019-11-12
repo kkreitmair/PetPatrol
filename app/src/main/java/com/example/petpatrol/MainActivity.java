@@ -4,10 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -34,6 +38,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView userInfo;
     private TextView userInfoDetail;
     private ProgressDialog progressDialog;
+
+    private LinearLayout inAppScrollView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,12 +143,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             userInfoDetail.setText(getString(R.string.firebase_status_fmt, user.getUid()));
 
             setButtonVisibility(View.GONE, View.VISIBLE);
+            setContentView(R.layout.main_view);
+            inAppScrollView = findViewById(R.id.inAppScrollView);
+            for (int index=0; index <=4; index++) {
+                generateAdvert();
+            }
         } else {
             userInfo.setText(R.string.signed_out);
             userInfoDetail.setText(null);
 
             setButtonVisibility(View.VISIBLE, View.GONE);
         }
+    }
+
+    private void generateAdvert() {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View advert = inflater.inflate(R.layout.advert, null);
+        inAppScrollView.addView(advert, inAppScrollView.getChildCount() - 1);
     }
 
     private void setButtonVisibility(int signIn, int signOutandDisconnect) {
