@@ -136,23 +136,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             progressDialog.dismiss();
         }
     }
+
     private void updateUI(FirebaseUser user) {
         hideProgressDialog();
         if (user != null) {
             userInfo.setText(getString(R.string.google_status_fmt, user.getEmail()));
             userInfoDetail.setText(getString(R.string.firebase_status_fmt, user.getUid()));
 
-            setButtonVisibility(View.GONE, View.VISIBLE);
-            setContentView(R.layout.main_view);
-            inAppScrollView = findViewById(R.id.inAppScrollView);
-            for (int index=0; index <=4; index++) {
-                generateAdvert();
-            }
+            exampleView();
         } else {
             userInfo.setText(R.string.signed_out);
             userInfoDetail.setText(null);
 
             setButtonVisibility(View.VISIBLE, View.GONE);
+        }
+    }
+
+    private void exampleView() {
+        setButtonVisibility(View.GONE, View.VISIBLE);
+        setContentView(R.layout.main_view);
+        inAppScrollView = findViewById(R.id.inAppScrollView);
+        for (int index=0; index <=4; index++) {
+            generateAdvert();
         }
     }
 
