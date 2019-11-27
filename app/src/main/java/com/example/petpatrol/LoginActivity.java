@@ -72,6 +72,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void onStart() {
         super.onStart();
         FirebaseUser currentUser = firebase.getCurrentUser();
+        Intent intent = getIntent();
+        String action = intent.getStringExtra("action");
+        if (action != null) {
+            if (action.equals("logout")) {
+                Log.w("Login", "signOut from menu");
+                if (currentUser != null) {
+                    signOut();
+                    currentUser = null;
+                }
+            }
+        }
         updateUI(currentUser);
     }
 
