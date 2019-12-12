@@ -13,4 +13,39 @@
     <string name="loading">Loading…</string>
     <string name="lost">Lost</string>
     <string name="found">Found</string>
+    <string-array name="selection_animal">
+        <item>Hund</item>
+        <item>Katze</item>
+        <item>Kleintier</item>
+        <item>Vogel</item>
+        <item>Echse</item>
+        <item>Nutztier</item>
+        <item>Andere</item>
+    </string-array>
+    <string-array name="selection_color">
+        <item>Weiß</item>
+        <item>Schwarz</item>
+        <item>Braun</item>
+        <item>Rot</item>
+        <item>Blau</item>
+        <item>Grün</item>
+        <item>Gelb</item>
+        <item>Gemischt</item>
+        <item>Andere</item>
+    </string-array>
+    <string-array name="selection_size">
+        <item>sehr klein (Bereich TODO)</item>
+        <item>klein (Bereich TODO</item>
+        <item>mittel (Bereich TODO</item>
+        <item>groß (Bereich TODO</item>
+        <item>sehr groß (Bereich TODO</item>
+    </string-array>
+    <string-array name="selection_tag_type">
+        <item>Tattoo</item>
+        <item>Chip</item>
+        <item>Halsband</item>
+        <item>Ohrmarke</item>
+        <item>Brandzeichen</item>
+        <item>Beringung</item>
+    </string-array>
 </resources>

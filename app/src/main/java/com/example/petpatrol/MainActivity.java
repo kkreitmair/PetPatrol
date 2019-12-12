@@ -13,13 +13,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, AddAnimalFragment.ResetButtons {
 
     private Fragment lostFragment = new LostFragment();
     private Fragment foundFragment = new FoundFragment();
+    private Fragment addAnimalFragment = new AddAnimalFragment();
+    private FloatingActionButton addButton;
     private Button lostButton;
     private Button foundButton;
-    private Button signOutButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,10 +34,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         lostButton = findViewById(R.id.lostButton);
         foundButton = findViewById(R.id.foundButton);
-        signOutButton = findViewById(R.id.menuSignOut);
+        addButton = findViewById(R.id.floatingAddButton);
 
         lostButton.setOnClickListener(this);
         foundButton.setOnClickListener(this);
+        addButton.setOnClickListener(this);
     }
 
     private void switchFragment(Fragment fragment) {
@@ -67,11 +71,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (i == R.id.menuSignOut) {
             Log.w("onClick", "Testing");
         }
+        if (i == R.id.floatingAddButton) {
+            lostButton.setVisibility(View.GONE);
+            foundButton.setVisibility(View.GONE);
+            switchFragment(addAnimalFragment);
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
         switch (item.getItemId()) {
             case R.id.menuSignOut:
                 Log.w("onClick", "Testing");
@@ -84,4 +92,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    @Override
+    public void resetButtons() {
+        lostButton.setVisibility(View.VISIBLE);
+        foundButton.setVisibility(View.VISIBLE);
+        addButton.setOnClickListener(this);
+    }
 }
