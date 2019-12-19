@@ -3,18 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
     android:visibility="visible">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/advert"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#ACA8A9">
+        android:layout_height="wrap_content"
+        android:background="#ACA8A9"
+        android:clickable="true">
 
         <ImageView
-            android:id="@+id/imageView2"
+            android:id="@+id/advert_image_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -38,7 +40,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="@+id/imageView2"
-            app:layout_constraintTop_toBottomOf="@+id/imageView2" />
+            app:layout_constraintStart_toStartOf="@+id/advert_image_view"
+            app:layout_constraintTop_toBottomOf="@+id/advert_image_view" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>
