@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+
 public class AddAnimalFragment extends Fragment {
 
     ResetButtons _mResetListener;
@@ -21,7 +22,6 @@ public class AddAnimalFragment extends Fragment {
     public interface ResetButtons {
         public void resetButtons();
     }
-
 
     @Override
     public void onAttach(Context context) {
@@ -50,6 +50,18 @@ public class AddAnimalFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Log.d("AddAnimalFragment", "addButton");
+                getActivity().findViewById(R.id.lostButton).setVisibility(View.VISIBLE);
+                getActivity().findViewById(R.id.foundButton).setVisibility(View.VISIBLE);
+                getFragmentManager().popBackStack();
+            }
+        });
+
+        FloatingActionButton exitButton = foundLayout.findViewById(R.id.floatingExitButton);
+        exitButton.show();
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d("AddAnimalFragment", "exitButton");
                 getActivity().findViewById(R.id.lostButton).setVisibility(View.VISIBLE);
                 getActivity().findViewById(R.id.foundButton).setVisibility(View.VISIBLE);
                 getFragmentManager().popBackStack();

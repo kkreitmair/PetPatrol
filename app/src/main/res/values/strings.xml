@@ -13,6 +13,7 @@
     <string name="loading">Loading…</string>
     <string name="lost">Lost</string>
     <string name="found">Found</string>
+    <string name="add_animal_tag">Tag</string>
     <string-array name="selection_animal">
         <item>Hund</item>
         <item>Katze</item>

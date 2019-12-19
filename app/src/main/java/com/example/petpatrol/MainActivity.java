@@ -15,12 +15,14 @@ import android.widget.Button;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, AddAnimalFragment.ResetButtons {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener,
+        AddAnimalFragment.ResetButtons {
 
     private Fragment lostFragment = new LostFragment();
     private Fragment foundFragment = new FoundFragment();
     private Fragment addAnimalFragment = new AddAnimalFragment();
     private FloatingActionButton addButton;
+    private FloatingActionButton exitButton;
     private Button lostButton;
     private Button foundButton;
 
@@ -35,10 +37,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lostButton = findViewById(R.id.lostButton);
         foundButton = findViewById(R.id.foundButton);
         addButton = findViewById(R.id.floatingAddButton);
+        exitButton = findViewById(R.id.floatingExitButton);
 
+        initializeButtons();
+    }
+
+    private void initializeButtons() {
+        lostButton.setVisibility(View.VISIBLE);
+        foundButton.setVisibility(View.VISIBLE);
+        addButton.show();
+        exitButton.hide();
         lostButton.setOnClickListener(this);
         foundButton.setOnClickListener(this);
         addButton.setOnClickListener(this);
+        exitButton.setOnClickListener(this);
     }
 
     private void switchFragment(Fragment fragment) {
@@ -94,8 +106,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void resetButtons() {
-        lostButton.setVisibility(View.VISIBLE);
-        foundButton.setVisibility(View.VISIBLE);
-        addButton.setOnClickListener(this);
+        initializeButtons();
     }
 }

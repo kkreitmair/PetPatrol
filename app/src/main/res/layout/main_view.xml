@@ -27,11 +27,21 @@
         app:layout_constraintTop_toBottomOf="@+id/toolbar" >
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatingExitButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|left"
+            android:layout_margin="@dimen/basic_margin"
+            android:clickable="true"
+            android:visibility="gone"
+            custom:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/floatingAddButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
+            android:layout_margin="@dimen/basic_margin"
             android:clickable="true"
             custom:srcCompat="@android:drawable/ic_input_add" />
     </FrameLayout>
