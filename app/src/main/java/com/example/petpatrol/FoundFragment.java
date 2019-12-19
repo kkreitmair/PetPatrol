@@ -19,7 +19,7 @@ public class FoundFragment extends Fragment {
         fragmentContainer = view.findViewById(R.id.found_advert_container);
         for (int index=0; index <=4; index++) {
             View advert = getLayoutInflater().inflate(R.layout.advert, null);
-            TextView text = advert.findViewById(R.id.textView);
+            TextView text = advert.findViewById(R.id.advert_title_view);
             text.setText("test");
             fragmentContainer.addView(advert, fragmentContainer.getChildCount() - 1);
         }
