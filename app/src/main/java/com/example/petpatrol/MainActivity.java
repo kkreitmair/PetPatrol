@@ -88,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             foundButton.setVisibility(View.GONE);
             switchFragment(addAnimalFragment);
         }
+        Log.d("MainActivity", "clicked: " + i);
     }
 
     @Override

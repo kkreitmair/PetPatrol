@@ -30,7 +30,6 @@ public class LostFragment extends Fragment {
     private RecyclerView advertContainer;
     private FirebaseFirestore firestoreDB;
     private boolean isUpdateRunning = false;
-    private boolean isScrolling = false;
     private boolean isLastItemReached = false;
     private DocumentSnapshot lastVisibleItem;
     private int limit = 3;
@@ -72,55 +71,61 @@ public class LostFragment extends Fragment {
                     advertAdapter.notifyDataSetChanged();
                     lastVisibleItem = task.getResult().getDocuments().get(task.getResult().size() - 1);
 
-                    lostContainer.getViewTreeObserver()
-                            .addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
-                                @Override
-                                public void onScrollChanged() {
-                                    Log.d(Tag, "isLastItemReached: " + isLastItemReached);
-                                    int bottomOfChild = lostContainer.getChildAt(0).getBottom();
-                                    int scrollPosition = (lostContainer.getHeight() + lostContainer.getScrollY());
-                                    if ((bottomOfChild <= scrollPosition) && !isLastItemReached) {
-                                        Log.d(Tag, "view is at bottom");
-                                        if (!isUpdateRunning) {
-                                            isUpdateRunning = true;
+                    final OnCompleteListener completeListener = new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                QuerySnapshot documents = task.getResult();
+                                for (DocumentSnapshot document : documents) {
+                                    AnimalAdvertModel animalAdvertModel = document.toObject(AnimalAdvertModel.class);
+                                    adverts.add(animalAdvertModel);
+                                }
+                                advertAdapter.notifyDataSetChanged();
+                                if (!documents.getDocuments().isEmpty()) {
+                                    if (lastVisibleItem.equals(documents.getDocuments().get(documents.size() - 1)))
+                                    {
+                                        Log.d(Tag, lastVisibleItem.getId());
+                                    }
+                                    lastVisibleItem = documents.getDocuments().get(documents.size() - 1);
+                                } else {
+                                    isLastItemReached = true;
+                                }
 
-                                            Query query = lostCollection
-                                                        .startAfter(lastVisibleItem)
-                                                        .limit(limit);
+                                if (task.getResult().size() < limit) {
+                                    isLastItemReached = true;
+                                }
+                            }
+                        }
+                    };
 
-                                            query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                                    if (task.isSuccessful()) {
-                                                        QuerySnapshot documents = task.getResult();
-                                                        for (DocumentSnapshot document : documents) {
-                                                            AnimalAdvertModel animalAdvertModel = document.toObject(AnimalAdvertModel.class);
-                                                            adverts.add(animalAdvertModel);
-                                                        }
-                                                        advertAdapter.notifyDataSetChanged();
-                                                        if (!documents.getDocuments().isEmpty()) {
-                                                            if (lastVisibleItem.equals(documents.getDocuments().get(documents.size() - 1)))
-                                                            {
-                                                                Log.d(Tag, lastVisibleItem.getId());
-                                                            }
-                                                            lastVisibleItem = documents.getDocuments().get(documents.size() - 1);
-                                                        } else {
-                                                            isLastItemReached = true;
-                                                        }
+                    ViewTreeObserver.OnScrollChangedListener scrollListener = new ViewTreeObserver
+                            .OnScrollChangedListener() {
+                        @Override
+                        public void onScrollChanged() {
+                            Log.d(Tag, "isLastItemReached: " + isLastItemReached);
+                            int bottomOfChild = lostContainer.getChildAt(0).getBottom();
+                            int scrollPosition = (lostContainer.getHeight() + lostContainer.getScrollY());
+                            if ((bottomOfChild <= scrollPosition)) {
+                                Log.d(Tag, "view is at bottom");
+                                if (!isLastItemReached) {
+                                    if (!isUpdateRunning) {
+                                        isUpdateRunning = true;
 
-                                                        if (task.getResult().size() < limit) {
-                                                           isLastItemReached = true;
-                                                        }
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    } else {
-                                        Log.d(Tag, "view not at botton");
-                                        //scroll view is not at bottom
+                                        Query query = lostCollection
+                                                .startAfter(lastVisibleItem)
+                                                .limit(limit);
+
+                                        query.get().addOnCompleteListener(completeListener);
                                     }
                                 }
-                            });
+                            } else {
+                                Log.d(Tag, "view not at botton");
+                            }
+                        }
+                    };
+
+                    lostContainer.getViewTreeObserver()
+                            .addOnScrollChangedListener(scrollListener);
                 }
             }
         });

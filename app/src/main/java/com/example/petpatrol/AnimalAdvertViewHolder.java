@@ -1,5 +1,6 @@
 package com.example.petpatrol;
 
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -11,6 +12,12 @@ public class AnimalAdvertViewHolder extends RecyclerView.ViewHolder {
     AnimalAdvertViewHolder(View itemView) {
         super(itemView);
         view = itemView;
+        view.findViewById(R.id.advert).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("Test", "card clicked");
+            }
+        });
     }
 
     void setTitle(String advertTitle) {

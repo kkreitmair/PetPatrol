@@ -50,5 +50,24 @@
             android:inputType="textPersonName"
             android:text="@string/add_animal_tag" />
 
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/animal_location"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <ImageView
+            android:id="@+id/animal_thumbnail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/basic_margin"
+            app:srcCompat="@drawable/ic_menu_camera" />
+
+        <Button
+            android:id="@+id/add_animal_image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/basic_margin"
+            android:text="Add Image" />
+
     </LinearLayout>
 </ScrollView>
