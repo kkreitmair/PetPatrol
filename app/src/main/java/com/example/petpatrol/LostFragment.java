@@ -1,10 +1,12 @@
 package com.example.petpatrol;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
+import android.view.ViewTreeObserver;
+import android.widget.ScrollView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -24,29 +26,40 @@ import java.util.List;
 
 public class LostFragment extends Fragment {
 
-    private RecyclerView fragmentContainer;
+    private ScrollView lostContainer;
+    private RecyclerView advertContainer;
     private FirebaseFirestore firestoreDB;
+    private boolean isUpdateRunning = false;
     private boolean isScrolling = false;
     private boolean isLastItemReached = false;
-    private DocumentSnapshot lastVisible;
+    private DocumentSnapshot lastVisibleItem;
     private int limit = 3;
+    private String Tag = "LostFragment";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         firestoreDB = FirebaseFirestore.getInstance();
 
         View view = inflater.inflate(R.layout.fragment_lost, parent, false);
-        fragmentContainer = view.findViewById(R.id.lost_advert_container);
+        advertContainer = view.findViewById(R.id.lost_advert_container);
 
-        fragmentContainer.setLayoutManager(new LinearLayoutManager(getContext()));
-        final List<AnimalAdvertModel> list = new ArrayList<>();
-        final AnimalAdvertAdapter animalAdvertAdapter = new AnimalAdvertAdapter(list);
-        fragmentContainer.setAdapter(animalAdvertAdapter);
 
-//        Task<QuerySnapshot> future = firestoreDB.collection("lost").get();
+        advertContainer.setLayoutManager(new LinearLayoutManager(getContext()){
+            @Override
+            public void onLayoutCompleted(final RecyclerView.State state) {
+                super.onLayoutCompleted(state);
+                isUpdateRunning = false;
+            }
+        });
 
-        final CollectionReference animalAdvertRef = firestoreDB.collection("lost");
-        Query query = animalAdvertRef.orderBy("title", Query.Direction.ASCENDING).limit(3);
+        final List<AnimalAdvertModel> adverts = new ArrayList<>();
+        final AnimalAdvertAdapter advertAdapter = new AnimalAdvertAdapter(adverts);
+        advertContainer.setAdapter(advertAdapter);
+
+        lostContainer = view.findViewById(R.id.lost_fragment_container);
+
+        final CollectionReference lostCollection = firestoreDB.collection("lost");
+        Query query = lostCollection.limit(limit);
 
         query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
@@ -54,53 +67,60 @@ public class LostFragment extends Fragment {
                 if (task.isSuccessful()) {
                     for (DocumentSnapshot document : task.getResult()) {
                         AnimalAdvertModel animalAdvertModel = document.toObject(AnimalAdvertModel.class);
-                        list.add(animalAdvertModel);
+                        adverts.add(animalAdvertModel);
                     }
-                    animalAdvertAdapter.notifyDataSetChanged();
-                    lastVisible = task.getResult().getDocuments().get(task.getResult().size() - 1);
+                    advertAdapter.notifyDataSetChanged();
+                    lastVisibleItem = task.getResult().getDocuments().get(task.getResult().size() - 1);
 
-                    RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
-                        @Override
-                        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                            super.onScrollStateChanged(recyclerView, newState);
-                            if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
-                                isScrolling = true;
-                            }
-                        }
+                    lostContainer.getViewTreeObserver()
+                            .addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
+                                @Override
+                                public void onScrollChanged() {
+                                    Log.d(Tag, "isLastItemReached: " + isLastItemReached);
+                                    int bottomOfChild = lostContainer.getChildAt(0).getBottom();
+                                    int scrollPosition = (lostContainer.getHeight() + lostContainer.getScrollY());
+                                    if ((bottomOfChild <= scrollPosition) && !isLastItemReached) {
+                                        Log.d(Tag, "view is at bottom");
+                                        if (!isUpdateRunning) {
+                                            isUpdateRunning = true;
 
-                        @Override
-                        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                            super.onScrolled(recyclerView, dx, dy);
+                                            Query query = lostCollection
+                                                        .startAfter(lastVisibleItem)
+                                                        .limit(limit);
 
-                            LinearLayoutManager linearLayoutManager = ((LinearLayoutManager) recyclerView.getLayoutManager());
-                            int firstVisibleItemPosition = linearLayoutManager.findFirstVisibleItemPosition();
-                            int visibleItemCount = linearLayoutManager.getChildCount();
-                            int totalItemCount = linearLayoutManager.getItemCount();
+                                            query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                                    if (task.isSuccessful()) {
+                                                        QuerySnapshot documents = task.getResult();
+                                                        for (DocumentSnapshot document : documents) {
+                                                            AnimalAdvertModel animalAdvertModel = document.toObject(AnimalAdvertModel.class);
+                                                            adverts.add(animalAdvertModel);
+                                                        }
+                                                        advertAdapter.notifyDataSetChanged();
+                                                        if (!documents.getDocuments().isEmpty()) {
+                                                            if (lastVisibleItem.equals(documents.getDocuments().get(documents.size() - 1)))
+                                                            {
+                                                                Log.d(Tag, lastVisibleItem.getId());
+                                                            }
+                                                            lastVisibleItem = documents.getDocuments().get(documents.size() - 1);
+                                                        } else {
+                                                            isLastItemReached = true;
+                                                        }
 
-                            if (isScrolling && (firstVisibleItemPosition + visibleItemCount == totalItemCount) && !isLastItemReached) {
-                                isScrolling = false;
-                                Query nextQuery = animalAdvertRef.orderBy("title", Query.Direction.ASCENDING).startAfter(lastVisible).limit(limit);
-                                nextQuery.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<QuerySnapshot> t) {
-                                        if (t.isSuccessful()) {
-                                            for (DocumentSnapshot d : t.getResult()) {
-                                                AnimalAdvertModel animalAdvertModel = d.toObject(AnimalAdvertModel.class);
-                                                list.add(animalAdvertModel);
-                                            }
-                                            animalAdvertAdapter.notifyDataSetChanged();
-                                            lastVisible = t.getResult().getDocuments().get(t.getResult().size() - 1);
-
-                                            if (t.getResult().size() < limit) {
-                                                isLastItemReached = true;
-                                            }
+                                                        if (task.getResult().size() < limit) {
+                                                           isLastItemReached = true;
+                                                        }
+                                                    }
+                                                }
+                                            });
                                         }
+                                    } else {
+                                        Log.d(Tag, "view not at botton");
+                                        //scroll view is not at bottom
                                     }
-                                });
-                            }
-                        }
-                    };
-                    fragmentContainer.addOnScrollListener(onScrollListener);
+                                }
+                            });
                 }
             }
         });
@@ -118,7 +138,7 @@ public class LostFragment extends Fragment {
 //                View advert = inflater.inflate(R.layout.advert, null);
 //                TextView text = advert.findViewById(R.id.textView);
 //                text.setText("new test (add Button)");
-//                fragmentContainer.addView(advert, fragmentContainer.getChildCount());
+//                advertContainer.addView(advert, advertContainer.getChildCount());
 //            }
 //        });
     }
