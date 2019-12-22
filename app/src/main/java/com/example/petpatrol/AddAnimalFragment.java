@@ -4,24 +4,27 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -38,30 +41,32 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.Collections;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 
 public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
 
     ResetButtons _mResetListener;
+
     private FirebaseFirestore firestoreDB;
     private ImageView imageThumbnail;
-    final int REQUEST_IMAGE_CAPTURE = 1;
     private MapView animalLocation;
     private GoogleMap map;
+    private FusedLocationProviderClient locationProvider;
+    private EditText searchText;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final String TAG = "AddAnimalFragment";
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
-
+    private boolean localizationPermitted = true;
 
     public interface ResetButtons {
         public void resetButtons();
@@ -83,7 +88,6 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
         firestoreDB = FirebaseFirestore.getInstance();
 
         animalLocation = view.findViewById(R.id.animal_location);
-        Log.d(TAG, "location view: " + animalLocation.toString());
         Bundle mapViewBundle = null;
         if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
@@ -96,16 +100,59 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        Log.d(TAG, "initializing map");
-        LatLng position = new LatLng(43.1, -87.9);
+        Log.d(TAG, "Map is ready.");
+        getDeviceLocation();
         map = googleMap;
+
+        LatLng position = new LatLng(52.5, 13.4);
+
         map.getUiSettings().setZoomControlsEnabled(false);
         map.getUiSettings().setMyLocationButtonEnabled(true);
         map.setMyLocationEnabled(true);
         map.addMarker(new MarkerOptions().position(position));
         map.moveCamera(CameraUpdateFactory.newLatLng(position));
+
+        init();
     }
 
+    private void getDeviceLocation(){
+        Log.d(TAG, "getDeviceLocation: getting the devices current location");
+
+        locationProvider = LocationServices.getFusedLocationProviderClient(getContext());
+
+        try{
+            if(localizationPermitted){
+
+                final Task location = locationProvider.getLastLocation();
+                location.addOnCompleteListener(new OnCompleteListener() {
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+                        if(task.isSuccessful() && (task.getResult() != null)){
+                            Log.d(TAG, "onComplete: found location!");
+
+                            Location currentLocation = (Location) task.getResult();
+                            LatLng position = new LatLng(currentLocation.getLatitude(),
+                                    currentLocation.getLongitude());
+
+                            moveCamera(position,12);
+
+                        }else{
+                            Log.d(TAG, "getDeviceLocation: current location is null");
+                            Toast.makeText(getContext(), "unable to get current location",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        }catch (SecurityException e){
+            Log.e(TAG, "getDeviceLocation: SecurityException: " + e.getMessage() );
+        }
+    }
+
+    private void moveCamera(LatLng latLng, float zoom){
+        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+    }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -185,8 +232,50 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
             }
         });
 
-//        MapView animal_location = view.findViewById(R.id.animal_location);
-//        animal_location.getMapAsync(this);
+        searchText = (EditText) view.findViewById(R.id.add_animal_location_input);
+    }
+
+    private void init(){
+        Log.d(TAG, "init: initializing");
+
+        searchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+                if(actionId == EditorInfo.IME_ACTION_SEARCH
+                        || actionId == EditorInfo.IME_ACTION_DONE
+                        || keyEvent.getAction() == KeyEvent.ACTION_DOWN
+                        || keyEvent.getAction() == KeyEvent.KEYCODE_ENTER){
+                    
+                    geoLocate();
+                }
+
+                return false;
+            }
+        });
+    }
+
+    private void geoLocate(){
+        Log.d(TAG, "geoLocate: geolocating");
+
+        String searchString = searchText.getText().toString();
+
+        Geocoder geocoder = new Geocoder(getContext());
+        List<Address> list = new ArrayList<>();
+        try{
+            list = geocoder.getFromLocationName(searchString, 1);
+        }catch (IOException e){
+            Log.e(TAG, "geoLocate: IOException: " + e.getMessage() );
+        }
+
+        if(list.size() > 0){
+            Address address = list.get(0);
+
+            Log.d(TAG, "geoLocate: found a location: " + address.toString());
+            map.clear();
+            LatLng position = new LatLng( address.getLatitude(), address.getLongitude());
+            moveCamera(position, 12);
+            map.addMarker(new MarkerOptions().position(position));
+        }
     }
 
     private void dispatchTakePictureIntent() {
