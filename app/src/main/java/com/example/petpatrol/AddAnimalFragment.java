@@ -75,6 +75,8 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
         LatLng position = new LatLng(43.1, -87.9);
         map = googleMap;
         map.getUiSettings().setZoomControlsEnabled(true);
+        map.getUiSettings().setMyLocationButtonEnabled(false);
+        googleMap.setMyLocationEnabled(true);
         map.setMinZoomPreference(12);
         map.addMarker(new MarkerOptions().position(position));
         map.moveCamera(CameraUpdateFactory.newLatLng(position));
