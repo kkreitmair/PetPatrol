@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.location.Location;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -16,24 +18,37 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+
+import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 
 public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
@@ -44,6 +59,9 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
     final int REQUEST_IMAGE_CAPTURE = 1;
     private MapView animalLocation;
     private GoogleMap map;
+    private static final String TAG = "AddAnimalFragment";
+    private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
+
 
     public interface ResetButtons {
         public void resetButtons();
@@ -63,24 +81,31 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_add_animal, parent, false);
         firestoreDB = FirebaseFirestore.getInstance();
-        animalLocation = view.findViewById(R.id.animal_location);
-        animalLocation.onCreate(savedInstanceState);
 
+        animalLocation = view.findViewById(R.id.animal_location);
+        Log.d(TAG, "location view: " + animalLocation.toString());
+        Bundle mapViewBundle = null;
+        if (savedInstanceState != null) {
+            mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
+        }
+        animalLocation.onCreate(mapViewBundle);
         animalLocation.getMapAsync(this);
+
         return view;
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        Log.d(TAG, "initializing map");
         LatLng position = new LatLng(43.1, -87.9);
         map = googleMap;
-        map.getUiSettings().setZoomControlsEnabled(true);
-        map.getUiSettings().setMyLocationButtonEnabled(false);
-        googleMap.setMyLocationEnabled(true);
-        map.setMinZoomPreference(12);
+        map.getUiSettings().setZoomControlsEnabled(false);
+        map.getUiSettings().setMyLocationButtonEnabled(true);
+        map.setMyLocationEnabled(true);
         map.addMarker(new MarkerOptions().position(position));
         map.moveCamera(CameraUpdateFactory.newLatLng(position));
     }
+
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -92,7 +117,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("AddAnimalFragment", "addButton");
+                Log.d(TAG, "addButton");
 
                 EditText advertTitle = foundLayout.findViewById(R.id.animal_advert_title);
                 EditText advertAnimal = foundLayout.findViewById(R.id.spinner_animal);
@@ -115,14 +140,14 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
                         .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                             @Override
                             public void onSuccess(DocumentReference documentReference) {
-                                Log.d("AddAnimal", "Event document added - id: "
+                                Log.d(TAG, "Event document added - id: "
                                         + documentReference.getId());
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                Log.w("AddAnimal", "Error adding event document", e);
+                                Log.w(TAG, "Error adding event document", e);
                             }
                         });
 
@@ -137,7 +162,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
         exitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("AddAnimalFragment", "exitButton");
+                Log.d(TAG, "exitButton");
                 getActivity().findViewById(R.id.lostButton).setVisibility(View.VISIBLE);
                 getActivity().findViewById(R.id.foundButton).setVisibility(View.VISIBLE);
                 getFragmentManager().popBackStack();
@@ -155,13 +180,13 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
         addImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("AddAnimalFragment", "addImageButton");
+                Log.d(TAG, "addImageButton");
                 dispatchTakePictureIntent();
             }
         });
 
-        MapView animal_location = view.findViewById(R.id.animal_location);
-        animal_location.getMapAsync(this);
+//        MapView animal_location = view.findViewById(R.id.animal_location);
+//        animal_location.getMapAsync(this);
     }
 
     private void dispatchTakePictureIntent() {
@@ -220,7 +245,14 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        animalLocation.onSaveInstanceState(outState);
+
+        Bundle mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
+        if (mapViewBundle == null) {
+            mapViewBundle = new Bundle();
+            outState.putBundle(MAPVIEW_BUNDLE_KEY, mapViewBundle);
+        }
+
+        animalLocation.onSaveInstanceState(mapViewBundle);
     }
 
     @Override
