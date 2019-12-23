@@ -8,7 +8,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
         <EditText
@@ -119,30 +119,33 @@
                 android:layout_marginEnd="@dimen/basic_margin"
                 android:layout_marginRight="@dimen/basic_margin"
                 android:layout_marginBottom="@dimen/basic_margin"
+                android:layout_weight="1"
                 android:text="Add Image" />
+
         </LinearLayout>
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <EditText
-            android:id="@+id/add_animal_location_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/basic_margin"
-            android:ems="10"
-            android:hint="Location"
-            android:inputType="textPersonName" />
-
-        <com.google.android.gms.maps.MapView
-            android:id="@+id/animal_location"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="@dimen/basic_margin" />
+            android:orientation="horizontal">
+
+            <com.google.android.gms.maps.MapView
+                android:id="@+id/animal_location"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:layout_margin="@dimen/basic_margin"
+                android:layout_weight="1" />
+
+            <fragment
+                android:id="@+id/autocomplete_fragment"
+                android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="1" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

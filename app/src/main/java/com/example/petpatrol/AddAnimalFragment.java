@@ -4,29 +4,25 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -36,18 +32,19 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
-
-
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-
 import com.google.android.gms.tasks.Task;
+
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,8 +59,8 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
     private MapView animalLocation;
     private GoogleMap map;
 
-    private EditText locationInput;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int AUTOCOMPLETE_REQUEST_CODE = 2;
     private static final String TAG = "AddAnimalFragment";
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
     private boolean localizationPermitted = true;
@@ -110,7 +107,6 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
         map.getUiSettings().setZoomControlsEnabled(false);
 
         setInitialLocation();
-        initLocationInputListener();
     }
 
     private void setInitialLocation(){
@@ -170,49 +166,6 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
     }
 
-    private void initLocationInputListener(){
-        Log.d(TAG, "initLocationInputListener: initializing");
-
-        locationInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-                if(actionId == EditorInfo.IME_ACTION_SEARCH
-                        || actionId == EditorInfo.IME_ACTION_DONE
-                        || keyEvent.getAction() == KeyEvent.ACTION_DOWN
-                        || keyEvent.getAction() == KeyEvent.KEYCODE_ENTER){
-                    geoLocate();
-                }
-                return false;
-            }
-        });
-    }
-
-    private void geoLocate(){
-        Log.d(TAG, "geoLocate: geolocating");
-
-        String searchString = locationInput.getText().toString();
-
-        Geocoder geocoder = new Geocoder(getContext());
-        List<Address> list = new ArrayList<>();
-        try{
-            list = geocoder.getFromLocationName(searchString, 1);
-        }catch (IOException e){
-            Log.e(TAG, "geoLocate: IOException: " + e.getMessage() );
-        }
-
-        if(list.size() > 0){
-            Address address = list.get(0);
-
-            Log.d(TAG, "geoLocate: found a location: " + address.toString());
-
-            LatLng position = new LatLng( address.getLatitude(), address.getLongitude());
-
-            map.clear();
-            map.addMarker(new MarkerOptions().position(position));
-            moveCamera(position);
-        }
-    }
-
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         getActivity().findViewById(R.id.lostButton).setVisibility(View.GONE);
@@ -224,7 +177,32 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
         initSpinners(view);
 
         imageThumbnail = view.findViewById(R.id.animal_thumbnail);
-        locationInput = (EditText) view.findViewById(R.id.add_animal_location_input);
+
+        Places.initialize(getContext(), getResources().getString(R.string.google_maps_key));
+        Places.createClient(getContext());
+
+        List<Place.Field> fields = Arrays.asList(Place.Field.ID,
+                Place.Field.NAME,
+                Place.Field.LAT_LNG);
+
+        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
+                getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+        autocompleteFragment.setPlaceFields(fields);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                Log.d(TAG, "Place: " + place.getName() + ", " + place.getId());
+                map.clear();
+                map.addMarker(new MarkerOptions().position(place.getLatLng()));
+                moveCamera(place.getLatLng());
+            }
+
+            @Override
+            public void onError(Status status) {
+                Log.d(TAG, "An error occurred: " + status);
+            }
+        });
+
     }
 
     private void initAddButton(View view) {
@@ -322,6 +300,9 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback {
             if (imageBitmap != null) {
                 imageThumbnail.setImageBitmap(imageBitmap);
             }
+        }
+        if (requestCode == AUTOCOMPLETE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            Log.d(TAG, "got result von intent");
         }
     }
 
