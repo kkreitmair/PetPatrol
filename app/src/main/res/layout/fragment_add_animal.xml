@@ -106,6 +106,10 @@
                 android:layout_marginRight="@dimen/basic_margin"
                 android:layout_marginBottom="@dimen/basic_margin"
                 android:layout_weight="1"
+                android:adjustViewBounds="true"
+                android:maxWidth="100dp"
+                android:maxHeight="100dp"
+                android:scaleType="centerInside"
                 app:srcCompat="@drawable/ic_menu_camera" />
 
             <Button
