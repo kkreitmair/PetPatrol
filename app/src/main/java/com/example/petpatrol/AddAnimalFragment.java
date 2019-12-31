@@ -6,9 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -50,13 +48,21 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
@@ -66,10 +72,12 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
 
     ResetButtons _mResetListener;
 
-    private FirebaseFirestore firestoreDB;
+    private FirebaseFirestore fbFirestore;
+    private FirebaseStorage fbStorage;
     private ImageView imageThumbnail;
     private MapView animalLocation;
     private GoogleMap map;
+    private Uri imageUri = null;
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int AUTOCOMPLETE_REQUEST_CODE = 2;
@@ -95,7 +103,8 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_add_animal, parent, false);
-        firestoreDB = FirebaseFirestore.getInstance();
+        fbFirestore = FirebaseFirestore.getInstance();
+        fbStorage = FirebaseStorage.getInstance();
 
         initMapView(view, savedInstanceState);
 
@@ -224,6 +233,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                boolean finished = false;
                 Log.d(TAG, "addButton");
 
                 EditText advertTitle = foundLayout.findViewById(R.id.animal_advert_title);
@@ -233,6 +243,13 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
                 Spinner advertTagType = foundLayout.findViewById(R.id.spinner_tag_type);
                 EditText advertTag = foundLayout.findViewById(R.id.tag);
 
+                String imageUUID = UUID.randomUUID().toString();
+
+                if (imageUri != null) {
+                    uploadImage(imageUri, imageUUID);
+                    finished = true;
+                }
+
                 Map<String, Object> advert = new HashMap<>();
                 advert.put("title", advertTitle.getText().toString());
                 advert.put("animal", advertAnimal.getSelectedItem().toString());
@@ -240,8 +257,9 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
                 advert.put("size", advertSize.getSelectedItem().toString());
                 advert.put("tag_type", advertTagType.getSelectedItem().toString());
                 advert.put("tag", advertTag.getText().toString());
+                advert.put("image", "images/" + imageUUID + ".jpg");
 
-                firestoreDB.collection("lost")
+                fbFirestore.collection("lost")
                         .add(advert)
                         .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                             @Override
@@ -257,9 +275,12 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
                             }
                         });
 
-                getActivity().findViewById(R.id.lostButton).setVisibility(View.VISIBLE);
-                getActivity().findViewById(R.id.foundButton).setVisibility(View.VISIBLE);
-                getFragmentManager().popBackStack();
+                if (finished) {
+                    getFragmentManager().popBackStack();
+                } else {
+                    Toast.makeText(getContext(), "Please add a Picture.",
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -289,7 +310,6 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
             public void onClick(View view) {
                 Log.d(TAG, "addImageButton");
                 test.show(getFragmentManager(), "test");
-//                dispatchTakePictureIntent();
             }
         });
     }
@@ -315,6 +335,19 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
+            File outputDir = getContext().getCacheDir();
+            try {
+                File outputFile = File.createTempFile("petpatrol_temp_img", "jpg", outputDir );
+                OutputStream stream = new FileOutputStream(outputFile);
+                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                stream.close();
+                imageUri = Uri.fromFile(outputFile);
+                Log.d(TAG, "onActivityResult: temp_image_stored.");
+            }catch (IOException e) {
+                Log.d(TAG, "onActivityResult: IOException");
+            }
+
+
             if (imageBitmap != null) {
                 imageThumbnail.setImageBitmap(imageBitmap);
             }
@@ -323,16 +356,76 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
             Log.d(TAG, "got result von intent");
         }
         if (requestCode == REQUEST_IMAGE_GET && resultCode == Activity.RESULT_OK) {
-            Bitmap thumbnail = data.getParcelableExtra("data");
-            Uri fullPhotoUri = data.getData();
+            Bitmap thumbnail = null;
+            try {
+                thumbnail = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(),
+                        data.getData());
+            } catch (FileNotFoundException e){
+                Log.d(TAG, "onActivityResult: Picture file not found.");
+            } catch (IOException e) {
+                Log.d(TAG, "onActivityResult: IOException");
+            }
+
+            imageUri = data.getData();
+
             if (thumbnail == null) {
-                Toast.makeText(getContext(), "Could not load Thumbnail for this image.", Toast.LENGTH_SHORT).show();
-                imageThumbnail.setImageURI(fullPhotoUri);
+                Toast.makeText(getContext(), "Could not load Thumbnail for this image.",
+                        Toast.LENGTH_SHORT).show();
+                imageThumbnail.setImageURI(imageUri);
             } else {
                 imageThumbnail.setImageBitmap(thumbnail);
             }
             Log.d(TAG, "onActivityResult: return from Gallery Intent" + data.getData());
         }
+    }
+
+    private void uploadImage(Uri picture, String identifier) {
+        Log.d(TAG, "uploadImage: Picture Path: " + picture.getPath());
+
+        StorageReference storageRef = fbStorage.getReference();
+        StorageReference pictureRef = storageRef.child("images/" + identifier + ".jpg");
+        Bitmap bitmap = null;
+
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), picture);
+        } catch (FileNotFoundException e){
+            Log.d(TAG, "uploadImage: Picture file not found.");
+        } catch (IOException e) {
+            Log.d(TAG, "uploadImage: IOException");
+        }
+
+        if (bitmap != null) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Bitmap image = scaleBitmap(bitmap,800, true);
+            image.compress(Bitmap.CompressFormat.JPEG, 75, baos);
+            byte[] data = baos.toByteArray();
+            Log.d(TAG, "uploadImage: Starting uploading picture.");
+            pictureRef.putBytes(data).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    Log.d(TAG, "uploadImage: Picture upload failed.");
+                }
+            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    Log.d(TAG, "uploadImage: Picture upload successfully.");
+                }
+            });
+        } else {
+            Log.d(TAG, "uploadImage: Bitmap could not be created.");
+        }
+    }
+
+    private Bitmap scaleBitmap(Bitmap realImage, float maxImageSize, boolean filter) {
+        float ratio = Math.min(
+                (float) maxImageSize / realImage.getWidth(),
+                (float) maxImageSize / realImage.getHeight());
+        int width = Math.round((float) ratio * realImage.getWidth());
+        int height = Math.round((float) ratio * realImage.getHeight());
+
+        Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, width,
+                height, filter);
+        return newBitmap;
     }
 
     @Override

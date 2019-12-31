@@ -1,6 +1,5 @@
 package com.example.petpatrol;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +26,9 @@ public class AnimalAdvertAdapter extends RecyclerView.Adapter<AnimalAdvertViewHo
     @Override
     public void onBindViewHolder(@NonNull AnimalAdvertViewHolder animalAdvertViewHolder, int position) {
         String advertTitle = list.get(position).getTitle();
+        String imageName = list.get(position).getImage();
         animalAdvertViewHolder.setTitle(advertTitle);
+        animalAdvertViewHolder.setImage(imageName);
     }
 
     @Override

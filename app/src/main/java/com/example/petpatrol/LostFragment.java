@@ -20,6 +20,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ public class LostFragment extends Fragment {
     private ScrollView lostContainer;
     private RecyclerView advertContainer;
     private FirebaseFirestore firestoreDB;
+    private FirebaseStorage fbStorage;
     private boolean isUpdateRunning = false;
     private boolean isLastItemReached = false;
     private DocumentSnapshot lastVisibleItem;
@@ -38,6 +40,7 @@ public class LostFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         firestoreDB = FirebaseFirestore.getInstance();
+        fbStorage = FirebaseStorage.getInstance();
 
         View view = inflater.inflate(R.layout.fragment_lost, parent, false);
         advertContainer = view.findViewById(R.id.lost_advert_container);
