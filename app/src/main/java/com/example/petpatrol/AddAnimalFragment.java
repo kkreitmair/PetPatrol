@@ -85,15 +85,16 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     private GoogleMap map;
     private Uri imageUri = null;
     private LatLng animalPos = null;
+    private boolean tagEnabled = false;
+    private String collection;
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int PERMISSION_GET_LOCATION = 2;
     private static final int REQUEST_IMAGE_GET = 3;
     private static final int PERMISSION_CHOOSE_PICTURE = 4;
+    private static final int DEFAULT_CAMERA_ZOOM = 10;
     private static final String TAG = "AddAnimalFragment";
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
-    private boolean tagEnabled = false;
-    private String collection;
 
     public interface ResetButtons {
         public void resetButtons();
@@ -162,15 +163,16 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
 
         if(!setDeviceLocationSuccessful()){
             Log.d(TAG, "setInitialLocation: Setting default location.");
-//            setDefaultLocation();
         }
     }
 
     private boolean setDeviceLocationSuccessful() {
         FusedLocationProviderClient locationProvider = LocationServices
                 .getFusedLocationProviderClient(getContext());
+
         int permission = ActivityCompat.checkSelfPermission(getContext(), ACCESS_COARSE_LOCATION);
         int granted = getActivity().getPackageManager().PERMISSION_GRANTED;
+
         if (permission == granted) {
             try{
                 final Task location = locationProvider.getLastLocation();
@@ -205,11 +207,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private void moveCamera(LatLng latLng){
-        Log.d(TAG, "moveCamera: moving the camera to: lat: " +
-                latLng.latitude +
-                ", lng: " +
-                latLng.longitude );
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_CAMERA_ZOOM));
     }
 
     @Override
@@ -218,168 +216,136 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         initExitButton(view);
         initAddImageButton(view);
         initSpinners(view);
+        initSearchPlace();
 
         imageThumbnail = view.findViewById(R.id.animal_thumbnail);
-
-        Places.initialize(getContext(), getResources().getString(R.string.google_maps_key));
-        Places.createClient(getContext());
-
-        List<Place.Field> fields = Arrays.asList(Place.Field.ID,
-                Place.Field.NAME,
-                Place.Field.LAT_LNG);
-
-        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
-                getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-        autocompleteFragment.setPlaceFields(fields);
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-            @Override
-            public void onPlaceSelected(Place place) {
-                Log.d(TAG, "Place: " + place.getName() + ", " + place.getId());
-                setMapPosition(place.getLatLng());
-            }
-
-            @Override
-            public void onError(Status status) {
-                Log.d(TAG, "An error occurred: " + status);
-            }
-        });
-
     }
 
     private void initAddButton(View view) {
-        final FrameLayout foundLayout = (FrameLayout) view.getParent();
-        FloatingActionButton addButton = foundLayout.findViewById(R.id.addButton);
+        final FrameLayout layout = (FrameLayout) view.getParent();
+        FloatingActionButton addButton = layout.findViewById(R.id.addButton);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d(TAG, "addButton");
+                Map<String, Object> advert = createAdvert(layout);
 
-                FirebaseAuth firebase = FirebaseAuth.getInstance();
-
-                EditText advertTitle = foundLayout.findViewById(R.id.animal_advert_title);
-                Spinner advertAnimal = foundLayout.findViewById(R.id.spinner_animal);
-                Spinner advertColor = foundLayout.findViewById(R.id.spinner_color);
-                Spinner advertSize = foundLayout.findViewById(R.id.spinner_size);
-                Spinner advertTagType = foundLayout.findViewById(R.id.spinner_tag_type);
-                EditText advertTag = foundLayout.findViewById(R.id.tag);
-
-                Map<String, Object> advert = new HashMap<>();
-
-                String title = advertTitle.getText().toString();
-                String titleHint = getString(R.string.add_animal_hint_title);
-
-                if (title.isEmpty()) {
-                    Toast.makeText(getContext(), titleHint, Toast.LENGTH_SHORT).show();
-                    return;
-                } else {
-                    advert.put("title", title);
+                if (advert != null) {
+                    uploadAdvert(advert);
+                    getFragmentManager().popBackStack();
                 }
-
-                String animal = advertAnimal.getSelectedItem().toString();
-                String animalHint = getString(R.string.add_animal_hint_animal);
-
-                if (animal.equals(animalHint)) {
-                    Toast.makeText(getContext(), animalHint, Toast.LENGTH_SHORT).show();
-                    return;
-                } else {
-                    advert.put("animal", animal);
-                }
-
-                String size = advertSize.getSelectedItem().toString();
-                String sizeHint = getString(R.string.add_animal_hint_size);
-
-                if (size.equals(sizeHint)) {
-                    Toast.makeText(getContext(), sizeHint, Toast.LENGTH_SHORT).show();
-                    return;
-                } else {
-                    advert.put("size", size);
-                }
-
-                String color = advertColor.getSelectedItem().toString();
-                String colorHint = getString(R.string.add_animal_hint_color);
-
-                if (color.equals(colorHint)) {
-                    Toast.makeText(getContext(), colorHint, Toast.LENGTH_SHORT).show();
-                    return;
-                } else {
-                    advert.put("color", color);
-                }
-
-
-
-                if (tagEnabled) {
-                    String tagType = advertTagType.getSelectedItem().toString();
-                    String tagTypeHint = getString(R.string.add_animal_hint_tag_type);
-
-                    if (tagType.equals(tagTypeHint)) {
-                        Toast.makeText(getContext(), tagTypeHint, Toast.LENGTH_SHORT).show();
-                        return;
-                    } else {
-                        advert.put("tag_type", tagType);
-                    }
-
-                    String tag = advertTag.getText().toString();
-                    String tagHint = getString(R.string.add_animal_hint_tag);
-
-                    if (tag.isEmpty()) {
-                        Toast.makeText(getContext(), tagHint, Toast.LENGTH_SHORT).show();
-                        return;
-                    } else {
-                        advert.put("tag", tag);
-                    }
-                } else {
-                    advert.put("tag_type", "");
-                    advert.put("tag", "");
-                }
-
-                String imageUUID = UUID.randomUUID().toString();
-
-                if (imageUri != null) {
-                    uploadImage(imageUri, imageUUID);
-                    advert.put("image", "images/" + imageUUID + ".jpg");
-                } else {
-                    advert.put("image", getStockImage(animal));
-                }
-
-                FirebaseUser currentUser = firebase.getCurrentUser();
-
-                if (currentUser == null ) {
-                    Toast.makeText(getContext(), getString(R.string.add_animal_hint_user)
-                            , Toast.LENGTH_SHORT).show();
-                    return;
-                } else {
-                    advert.put("user_id", currentUser.getUid());
-                }
-
-                if (animalPos == null ) {
-                    Toast.makeText(getContext(), getString(R.string.add_animal_hint_location)
-                            , Toast.LENGTH_SHORT).show();
-                    return;
-                } else {
-                    advert.put("position", animalPos);
-                }
-
-                advert.put("created", (System.currentTimeMillis())/1000);
-
-                fbFirestore.collection(collection)
-                        .add(advert)
-                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                            @Override
-                            public void onSuccess(DocumentReference documentReference) {
-                                Log.d(TAG, "Event document added - id: "
-                                        + documentReference.getId());
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.w(TAG, "Error adding event document", e);
-                            }
-                        });
-
-                getFragmentManager().popBackStack();
             }
         });
+    }
+
+    private Map<String, Object> createAdvert(FrameLayout layout) {
+        boolean inputValid = true;
+        FirebaseAuth firebase = FirebaseAuth.getInstance();
+
+        EditText advertTitle = layout.findViewById(R.id.animal_advert_title);
+        Spinner advertAnimal = layout.findViewById(R.id.spinner_animal);
+        Spinner advertColor = layout.findViewById(R.id.spinner_color);
+        Spinner advertSize = layout.findViewById(R.id.spinner_size);
+        Spinner advertTagType = layout.findViewById(R.id.spinner_tag_type);
+        EditText advertTag = layout.findViewById(R.id.tag);
+
+        String tagType = null;
+        String tag = null;
+
+        Map<String, Object> advert = new HashMap<>();
+
+        String title = advertTitle.getText().toString();
+        String titleHint = getString(R.string.add_animal_hint_title);
+
+        inputValid = isInputValid(title, titleHint);
+
+        String animal = advertAnimal.getSelectedItem().toString();
+        String animalHint = getString(R.string.add_animal_hint_animal);
+
+        if (inputValid) {
+            inputValid = isInputValid(animal, animalHint);
+        }
+
+        String size = advertSize.getSelectedItem().toString();
+        String sizeHint = getString(R.string.add_animal_hint_size);
+
+        if (inputValid) {
+            inputValid = isInputValid(size, sizeHint);
+        }
+
+        String color = advertColor.getSelectedItem().toString();
+        String colorHint = getString(R.string.add_animal_hint_color);
+
+        if (inputValid) {
+            inputValid = isInputValid(color, colorHint);
+        }
+
+        if (tagEnabled) {
+            tagType = advertTagType.getSelectedItem().toString();
+            String tagTypeHint = getString(R.string.add_animal_hint_tag_type);
+
+            if (inputValid) {
+                inputValid = isInputValid(tagType, tagTypeHint);
+            }
+
+            tag = advertTag.getText().toString();
+            String tagHint = getString(R.string.add_animal_hint_tag);
+
+            if (inputValid) {
+                inputValid = isInputValid(tag, tagHint);
+            }
+        }
+
+        String imageUUID = UUID.randomUUID().toString();
+
+        if (imageUri != null) {
+            uploadImage(imageUri, imageUUID);
+            advert.put("image", "images/" + imageUUID + ".jpg");
+        } else {
+            advert.put("image", getStockImage(animal));
+        }
+
+        FirebaseUser currentUser = firebase.getCurrentUser();
+
+        if (currentUser == null && inputValid) {
+            Toast.makeText(getContext(), getString(R.string.add_animal_hint_user)
+                    , Toast.LENGTH_SHORT).show();
+            inputValid = false;
+        }
+
+        if (animalPos == null && inputValid) {
+            Toast.makeText(getContext(), getString(R.string.add_animal_hint_location)
+                    , Toast.LENGTH_SHORT).show();
+            inputValid = false;
+        }
+
+        if (inputValid) {
+            advert.put("title", title);
+            advert.put("animal", animal);
+            advert.put("size", size);
+            advert.put("color", color);
+            if (tagEnabled) {
+                advert.put("tag_type", tagType);
+                advert.put("tag", tag);
+            } else {
+                advert.put("tag_type", "");
+                advert.put("tag", "");
+            }
+            advert.put("user_id", currentUser.getUid());
+            advert.put("position", animalPos);
+            advert.put("created", (System.currentTimeMillis())/1000);
+        } else {
+            return null;
+        }
+
+        return advert;
+    }
+
+    private boolean isInputValid(String text, String textHint) {
+        if (text.isEmpty() || text.equals(textHint)) {
+            Toast.makeText(getContext(), textHint, Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
     }
 
     private String getStockImage(String animal) {
@@ -399,6 +365,24 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
             image = getString(R.string.stock_image_farm_animal);
         }
         return image;
+    }
+
+    private void uploadAdvert(Map<String, Object> advert) {
+        fbFirestore.collection(collection)
+                .add(advert)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Log.d(TAG, "Event document added - id: "
+                                + documentReference.getId());
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error adding event document", e);
+                    }
+                });
     }
 
     private void initExitButton(View view) {
@@ -429,10 +413,11 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private void initSpinners(View view) {
-        fillUpSpinner(view.findViewById(R.id.spinner_animal), R.array.selection_animal);
-        fillUpSpinner(view.findViewById(R.id.spinner_color), R.array.selection_color);
-        fillUpSpinner(view.findViewById(R.id.spinner_size), R.array.selection_size);
-        Spinner tagSpinner = fillUpSpinner(view.findViewById(R.id.spinner_tag_type), R.array.selection_tag_type);
+        initSpinner(view.findViewById(R.id.spinner_animal), R.array.selection_animal);
+        initSpinner(view.findViewById(R.id.spinner_color), R.array.selection_color);
+        initSpinner(view.findViewById(R.id.spinner_size), R.array.selection_size);
+
+        Spinner tagSpinner = initSpinner(view.findViewById(R.id.spinner_tag_type), R.array.selection_tag_type);
         tagSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -450,6 +435,43 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 Log.d(TAG, "No Tag Type selected.");
+            }
+        });
+    }
+
+    private Spinner initSpinner(View spinner, int selectionId) {
+        Spinner menu = (Spinner) spinner;
+
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
+                selectionId, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        menu.setAdapter(adapter);
+        menu.setSelection(adapter.getCount() - 1);
+
+        return menu;
+    }
+
+    private void initSearchPlace() {
+        Places.initialize(getContext(), getResources().getString(R.string.google_maps_key));
+        Places.createClient(getContext());
+
+        List<Place.Field> fields = Arrays.asList(Place.Field.ID,
+                Place.Field.NAME,
+                Place.Field.LAT_LNG);
+
+        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
+                getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+        autocompleteFragment.setPlaceFields(fields);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                Log.d(TAG, "Place: " + place.getName() + ", " + place.getId());
+                setMapPosition(place.getLatLng());
+            }
+
+            @Override
+            public void onError(Status status) {
+                Log.d(TAG, "An error occurred: " + status);
             }
         });
     }
@@ -602,17 +624,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    private Spinner fillUpSpinner(View spinner, int selectionId) {
-        Spinner menu = (Spinner) spinner;
 
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
-                selectionId, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        menu.setAdapter(adapter);
-        menu.setSelection(adapter.getCount() - 1);
-
-        return menu;
-    }
 
     @Override
     public void onResume() {
