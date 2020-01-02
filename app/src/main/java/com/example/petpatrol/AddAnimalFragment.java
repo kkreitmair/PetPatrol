@@ -86,6 +86,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     private Uri imageUri = null;
     private LatLng animalPos = null;
     private boolean tagEnabled = false;
+    private boolean inputIsValid = true;
     private String collection;
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -93,6 +94,8 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     private static final int REQUEST_IMAGE_GET = 3;
     private static final int PERMISSION_CHOOSE_PICTURE = 4;
     private static final int DEFAULT_CAMERA_ZOOM = 10;
+    private static final int MAX_IMAGE_SIZE = 400;
+    private static final int IMAGE_QUALITY = 75;
     private static final String TAG = "AddAnimalFragment";
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
 
@@ -238,7 +241,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private Map<String, Object> createAdvert(FrameLayout layout) {
-        boolean inputValid = true;
+        inputIsValid = true;
         FirebaseAuth firebase = FirebaseAuth.getInstance();
 
         EditText advertTitle = layout.findViewById(R.id.animal_advert_title);
@@ -256,69 +259,41 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         String title = advertTitle.getText().toString();
         String titleHint = getString(R.string.add_animal_hint_title);
 
-        inputValid = isInputValid(title, titleHint);
+        validateInput(title, titleHint);
 
         String animal = advertAnimal.getSelectedItem().toString();
         String animalHint = getString(R.string.add_animal_hint_animal);
 
-        if (inputValid) {
-            inputValid = isInputValid(animal, animalHint);
-        }
+        validateInput(animal, animalHint);
 
         String size = advertSize.getSelectedItem().toString();
         String sizeHint = getString(R.string.add_animal_hint_size);
 
-        if (inputValid) {
-            inputValid = isInputValid(size, sizeHint);
-        }
+        validateInput(size, sizeHint);
 
         String color = advertColor.getSelectedItem().toString();
         String colorHint = getString(R.string.add_animal_hint_color);
 
-        if (inputValid) {
-            inputValid = isInputValid(color, colorHint);
-        }
+        validateInput(color, colorHint);
 
         if (tagEnabled) {
             tagType = advertTagType.getSelectedItem().toString();
             String tagTypeHint = getString(R.string.add_animal_hint_tag_type);
 
-            if (inputValid) {
-                inputValid = isInputValid(tagType, tagTypeHint);
-            }
+            validateInput(tagType, tagTypeHint);
 
             tag = advertTag.getText().toString();
             String tagHint = getString(R.string.add_animal_hint_tag);
 
-            if (inputValid) {
-                inputValid = isInputValid(tag, tagHint);
-            }
-        }
-
-        String imageUUID = UUID.randomUUID().toString();
-
-        if (imageUri != null) {
-            uploadImage(imageUri, imageUUID);
-            advert.put("image", "images/" + imageUUID + ".jpg");
-        } else {
-            advert.put("image", getStockImage(animal));
+            validateInput(tag, tagHint);
         }
 
         FirebaseUser currentUser = firebase.getCurrentUser();
 
-        if (currentUser == null && inputValid) {
-            Toast.makeText(getContext(), getString(R.string.add_animal_hint_user)
-                    , Toast.LENGTH_SHORT).show();
-            inputValid = false;
-        }
+        validateInput(currentUser, getString(R.string.add_animal_hint_user));
+        validateInput(animalPos, getString(R.string.add_animal_hint_location) );
 
-        if (animalPos == null && inputValid) {
-            Toast.makeText(getContext(), getString(R.string.add_animal_hint_location)
-                    , Toast.LENGTH_SHORT).show();
-            inputValid = false;
-        }
-
-        if (inputValid) {
+        if (inputIsValid) {
             advert.put("title", title);
             advert.put("animal", animal);
             advert.put("size", size);
@@ -333,6 +308,15 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
             advert.put("user_id", currentUser.getUid());
             advert.put("position", animalPos);
             advert.put("created", (System.currentTimeMillis())/1000);
+
+            String imageUUID = UUID.randomUUID().toString();
+
+            if (imageUri != null) {
+                uploadImage(imageUri, imageUUID);
+                advert.put("image", "images/" + imageUUID + ".jpg");
+            } else {
+                advert.put("image", getStockImage(animal));
+            }
         } else {
             return null;
         }
@@ -340,12 +324,21 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         return advert;
     }
 
-    private boolean isInputValid(String text, String textHint) {
-        if (text.isEmpty() || text.equals(textHint)) {
-            Toast.makeText(getContext(), textHint, Toast.LENGTH_SHORT).show();
-            return false;
+    private void validateInput(Object input, String inputHint) {
+        if (inputIsValid) {
+            if (input != null) {
+                if (input instanceof String) {
+                    String text = (String) input;
+                    if (text.isEmpty() || text.equals(inputHint)) {
+                        Toast.makeText(getContext(), inputHint, Toast.LENGTH_SHORT).show();
+                        inputIsValid = false;
+                    }
+                }
+            } else {
+                Toast.makeText(getContext(), inputHint, Toast.LENGTH_SHORT).show();
+                inputIsValid = false;
+            }
         }
-        return true;
     }
 
     private String getStockImage(String animal) {
@@ -547,8 +540,8 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
 
         if (bitmap != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Bitmap image = scaleBitmap(bitmap,800, true);
-            image.compress(Bitmap.CompressFormat.JPEG, 75, baos);
+            Bitmap image = scaleBitmap(bitmap,MAX_IMAGE_SIZE, true);
+            image.compress(Bitmap.CompressFormat.JPEG, IMAGE_QUALITY, baos);
             byte[] data = baos.toByteArray();
             Log.d(TAG, "uploadImage: Starting uploading picture.");
             pictureRef.putBytes(data).addOnFailureListener(new OnFailureListener() {
@@ -623,8 +616,6 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
                 return;
         }
     }
-
-
 
     @Override
     public void onResume() {
