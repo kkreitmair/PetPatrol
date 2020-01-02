@@ -38,7 +38,7 @@ public class AnimalAdvertViewHolder extends RecyclerView.ViewHolder {
         FirebaseStorage fbStorage = FirebaseStorage.getInstance();
         StorageReference storageRef = fbStorage.getReference();
         Log.d("ViewHolder", "ImageName is: " + imageName);
-        StorageReference imageRef = storageRef.child(imageName);
+        final StorageReference imageRef = storageRef.child(imageName);
 
         final ImageView imageView = view.findViewById(R.id.advert_image_view);
 
@@ -55,7 +55,7 @@ public class AnimalAdvertViewHolder extends RecyclerView.ViewHolder {
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
-                Log.d("TEST", "Image could not be downloaded.");
+                Log.d("TEST", "Image could not be downloaded." + exception.getMessage());
             }
         });
     }

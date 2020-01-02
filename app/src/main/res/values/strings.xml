@@ -13,19 +13,42 @@
     <string name="loading">Loading…</string>
     <string name="lost">Lost</string>
     <string name="found">Found</string>
-    <string name="add_animal_tag">Tag</string>
+    <string name="add_animal_hint_tag">Gib einen Tag ein.</string>
+    <string name="add_animal_hint_title">Gib einen Titel ein.</string>
+    <string name="add_animal_hint_animal">Wähle eine Tierart aus.</string>
+    <string name="add_animal_hint_color">Wähle eine Tierfarbe aus.</string>
+    <string name="add_animal_hint_size">Wähle eine Tiergröße aus.</string>
+    <string name="add_animal_hint_tag_type">Wähle eine Tag Typ aus.</string>
+    <string name="add_animal_hint_image">Wähle eine Tag Bild aus.</string>
+    <string name="add_animal_hint_location">Wähle einen Ort aus.</string>
+    <string name="add_animal_hint_user">Kein Nutzer eingeloggt. Bitte melden sie sich neu an.</string>
+    <string name="stock_image_dog">images/dog.jpg</string>
+    <string name="stock_image_cat">images/cat.jpg</string>
+    <string name="stock_image_small_animal">images/small_animal.jpg</string>
+    <string name="stock_image_bird">images/bird.jpg</string>
+    <string name="stock_image_lizard">images/lizard.jpg</string>
+    <string name="stock_image_farm_animal">images/farm_animal.jpg</string>
+    <string name="stock_image_other">images/other.jpg</string>
+    <string name="animal_dog">Hund</string>
+    <string name="animal_cat">Katze</string>
+    <string name="animal_small_animal">Kleintier</string>
+    <string name="animal_bird">Vogel</string>
+    <string name="animal_lizard">Echse</string>
+    <string name="animal_farm_animal">Nutztier</string>
+    <string name="animal_other">Andere</string>
     <string-array name="get_image_selection">
         <item>Foto machen</item>
         <item>Aus Galerie auswählen</item>
     </string-array>
     <string-array name="selection_animal">
-        <item>Hund</item>
-        <item>Katze</item>
-        <item>Kleintier</item>
-        <item>Vogel</item>
-        <item>Echse</item>
-        <item>Nutztier</item>
-        <item>Andere</item>
+        <item>@string/animal_dog</item>
+        <item>@string/animal_cat</item>
+        <item>@string/animal_small_animal</item>
+        <item>@string/animal_bird</item>
+        <item>@string/animal_lizard</item>
+        <item>@string/animal_farm_animal</item>
+        <item>@string/animal_other</item>
+        <item>@string/add_animal_hint_animal</item>
     </string-array>
     <string-array name="selection_color">
         <item>Weiß</item>
@@ -37,13 +60,15 @@
         <item>Gelb</item>
         <item>Gemischt</item>
         <item>Andere</item>
+        <item>@string/add_animal_hint_color</item>
     </string-array>
     <string-array name="selection_size">
-        <item>sehr klein (Bereich TODO)</item>
-        <item>klein (Bereich TODO</item>
-        <item>mittel (Bereich TODO</item>
-        <item>groß (Bereich TODO</item>
-        <item>sehr groß (Bereich TODO</item>
+        <item>sehr klein (kleiner als 5cm)</item>
+        <item>klein (5cm - 20cm)</item>
+        <item>mittel (20cm - 80cm)</item>
+        <item>groß (80cm - 1,5m)</item>
+        <item>sehr groß (größer als 1,5m)</item>
+        <item>@string/add_animal_hint_size</item>
     </string-array>
     <string-array name="selection_tag_type">
         <item>Tattoo</item>
@@ -52,6 +77,7 @@
         <item>Ohrmarke</item>
         <item>Brandzeichen</item>
         <item>Beringung</item>
+        <item>@string/add_animal_hint_tag_type</item>
     </string-array>
     <string name="title_activity_maps">Map</string>
 </resources>

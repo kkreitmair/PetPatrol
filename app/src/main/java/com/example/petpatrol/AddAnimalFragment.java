@@ -14,11 +14,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -46,6 +48,8 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -68,7 +72,9 @@ import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
 
 public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
-        ImageDialogFragment.ImageDialogListener {
+        ImageDialogFragment.ImageDialogListener,
+        GoogleMap.OnMyLocationClickListener,
+        GoogleMap.OnMapLongClickListener {
 
     ResetButtons _mResetListener;
 
@@ -78,13 +84,14 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     private MapView animalLocation;
     private GoogleMap map;
     private Uri imageUri = null;
+    private LatLng animalPos = null;
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private static final int AUTOCOMPLETE_REQUEST_CODE = 2;
     private static final int REQUEST_IMAGE_GET = 3;
     private static final String TAG = "AddAnimalFragment";
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
     private boolean localizationPermitted = true;
+    private boolean tagEnabled = false;
 
     public interface ResetButtons {
         public void resetButtons();
@@ -126,6 +133,8 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         Log.d(TAG, "Map is ready.");
 
         map = googleMap;
+        map.setOnMyLocationClickListener(this);
+        map.setOnMapLongClickListener(this);
         map.getUiSettings().setZoomControlsEnabled(false);
 
         setInitialLocation();
@@ -134,13 +143,13 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     private void setInitialLocation(){
         Log.d(TAG, "setInitialLocation: getting the devices current location");
 
-        if(!setDeviceLocationSuccessfully()){
+        if(!setDeviceLocationSuccessful()){
             Log.d(TAG, "setInitialLocation: Setting default location.");
             setDefaultLocation();
         }
     }
 
-    private boolean setDeviceLocationSuccessfully() {
+    private boolean setDeviceLocationSuccessful() {
         FusedLocationProviderClient locationProvider = LocationServices
                 .getFusedLocationProviderClient(getContext());
 
@@ -176,7 +185,6 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
 
     private void setDefaultLocation() {
         LatLng positionHamburg = new LatLng(52.5, 13.4);
-        map.addMarker(new MarkerOptions().position(positionHamburg));
         map.moveCamera(CameraUpdateFactory.newLatLng(positionHamburg));
     }
 
@@ -214,9 +222,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
             @Override
             public void onPlaceSelected(Place place) {
                 Log.d(TAG, "Place: " + place.getName() + ", " + place.getId());
-                map.clear();
-                map.addMarker(new MarkerOptions().position(place.getLatLng()));
-                moveCamera(place.getLatLng());
+                setMapPosition(place.getLatLng());
             }
 
             @Override
@@ -233,8 +239,9 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean finished = false;
                 Log.d(TAG, "addButton");
+
+                FirebaseAuth firebase = FirebaseAuth.getInstance();
 
                 EditText advertTitle = foundLayout.findViewById(R.id.animal_advert_title);
                 Spinner advertAnimal = foundLayout.findViewById(R.id.spinner_animal);
@@ -243,21 +250,103 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
                 Spinner advertTagType = foundLayout.findViewById(R.id.spinner_tag_type);
                 EditText advertTag = foundLayout.findViewById(R.id.tag);
 
+                Map<String, Object> advert = new HashMap<>();
+
+                String title = advertTitle.getText().toString();
+                String titleHint = getString(R.string.add_animal_hint_title);
+
+                if (title.isEmpty()) {
+                    Toast.makeText(getContext(), titleHint, Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    advert.put("title", title);
+                }
+
+                String animal = advertAnimal.getSelectedItem().toString();
+                String animalHint = getString(R.string.add_animal_hint_animal);
+
+                if (animal.equals(animalHint)) {
+                    Toast.makeText(getContext(), animalHint, Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    advert.put("animal", animal);
+                }
+
+                String size = advertSize.getSelectedItem().toString();
+                String sizeHint = getString(R.string.add_animal_hint_size);
+
+                if (size.equals(sizeHint)) {
+                    Toast.makeText(getContext(), sizeHint, Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    advert.put("size", size);
+                }
+
+                String color = advertColor.getSelectedItem().toString();
+                String colorHint = getString(R.string.add_animal_hint_color);
+
+                if (color.equals(colorHint)) {
+                    Toast.makeText(getContext(), colorHint, Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    advert.put("color", color);
+                }
+
+
+
+                if (tagEnabled) {
+                    String tagType = advertTagType.getSelectedItem().toString();
+                    String tagTypeHint = getString(R.string.add_animal_hint_tag_type);
+
+                    if (tagType.equals(tagTypeHint)) {
+                        Toast.makeText(getContext(), tagTypeHint, Toast.LENGTH_SHORT).show();
+                        return;
+                    } else {
+                        advert.put("tag_type", tagType);
+                    }
+
+                    String tag = advertTag.getText().toString();
+                    String tagHint = getString(R.string.add_animal_hint_tag);
+
+                    if (tag.isEmpty()) {
+                        Toast.makeText(getContext(), tagHint, Toast.LENGTH_SHORT).show();
+                        return;
+                    } else {
+                        advert.put("tag", tag);
+                    }
+                } else {
+                    advert.put("tag_type", "");
+                    advert.put("tag", "");
+                }
+
                 String imageUUID = UUID.randomUUID().toString();
 
                 if (imageUri != null) {
                     uploadImage(imageUri, imageUUID);
-                    finished = true;
+                    advert.put("image", "images/" + imageUUID + ".jpg");
+                } else {
+                    advert.put("image", getStockImage(animal));
                 }
 
-                Map<String, Object> advert = new HashMap<>();
-                advert.put("title", advertTitle.getText().toString());
-                advert.put("animal", advertAnimal.getSelectedItem().toString());
-                advert.put("color", advertColor.getSelectedItem().toString());
-                advert.put("size", advertSize.getSelectedItem().toString());
-                advert.put("tag_type", advertTagType.getSelectedItem().toString());
-                advert.put("tag", advertTag.getText().toString());
-                advert.put("image", "images/" + imageUUID + ".jpg");
+                FirebaseUser currentUser = firebase.getCurrentUser();
+
+                if (currentUser == null ) {
+                    Toast.makeText(getContext(), getString(R.string.add_animal_hint_user)
+                            , Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    advert.put("user_id", currentUser.getUid());
+                }
+
+                if (animalPos == null ) {
+                    Toast.makeText(getContext(), getString(R.string.add_animal_hint_location)
+                            , Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    advert.put("position", animalPos);
+                }
+
+                advert.put("created", (System.currentTimeMillis())/1000);
 
                 fbFirestore.collection("lost")
                         .add(advert)
@@ -275,14 +364,28 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
                             }
                         });
 
-                if (finished) {
-                    getFragmentManager().popBackStack();
-                } else {
-                    Toast.makeText(getContext(), "Please add a Picture.",
-                            Toast.LENGTH_SHORT).show();
-                }
+                getFragmentManager().popBackStack();
             }
         });
+    }
+
+    private String getStockImage(String animal) {
+        String image = getString(R.string.stock_image_other);
+
+        if (animal.equals(getString(R.string.animal_dog))) {
+            image = getString(R.string.stock_image_dog);
+        } else if (animal.equals(getString(R.string.animal_cat))) {
+            image = getString(R.string.stock_image_cat);
+        } else if (animal.equals(getString(R.string.animal_small_animal))) {
+            image = getString(R.string.stock_image_small_animal);
+        } else if (animal.equals(getString(R.string.animal_bird))) {
+            image = getString(R.string.stock_image_bird);
+        } else if (animal.equals(getString(R.string.animal_lizard))) {
+            image = getString(R.string.stock_image_lizard);
+        } else if (animal.equals(getString(R.string.animal_farm_animal))) {
+            image = getString(R.string.stock_image_farm_animal);
+        }
+        return image;
     }
 
     private void initExitButton(View view) {
@@ -293,8 +396,6 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
             @Override
             public void onClick(View view) {
                 Log.d(TAG, "exitButton");
-                getActivity().findViewById(R.id.lostButton).setVisibility(View.VISIBLE);
-                getActivity().findViewById(R.id.foundButton).setVisibility(View.VISIBLE);
                 getFragmentManager().popBackStack();
             }
         });
@@ -318,7 +419,26 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         fillUpSpinner(view.findViewById(R.id.spinner_animal), R.array.selection_animal);
         fillUpSpinner(view.findViewById(R.id.spinner_color), R.array.selection_color);
         fillUpSpinner(view.findViewById(R.id.spinner_size), R.array.selection_size);
-        fillUpSpinner(view.findViewById(R.id.spinner_tag_type), R.array.selection_tag_type);
+        Spinner tagSpinner = fillUpSpinner(view.findViewById(R.id.spinner_tag_type), R.array.selection_tag_type);
+        tagSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                LinearLayout foundLayout = (LinearLayout) parent.getParent();
+                if ((parent.getCount() - 1) != id) {
+                    Log.d(TAG, "Tag Type selected.");
+                    tagEnabled = true;
+                    foundLayout.findViewById(R.id.tag).setEnabled(true);
+                } else {
+                    tagEnabled = false;
+                    foundLayout.findViewById(R.id.tag).setEnabled(false);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Log.d(TAG, "No Tag Type selected.");
+            }
+        });
     }
 
     private void dispatchTakePictureIntent() {
@@ -347,13 +467,9 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
                 Log.d(TAG, "onActivityResult: IOException");
             }
 
-
             if (imageBitmap != null) {
                 imageThumbnail.setImageBitmap(imageBitmap);
             }
-        }
-        if (requestCode == AUTOCOMPLETE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            Log.d(TAG, "got result von intent");
         }
         if (requestCode == REQUEST_IMAGE_GET && resultCode == Activity.RESULT_OK) {
             Bitmap thumbnail = null;
@@ -462,13 +578,16 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    private void fillUpSpinner(View spinner, int selectionId) {
+    private Spinner fillUpSpinner(View spinner, int selectionId) {
         Spinner menu = (Spinner) spinner;
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
                 selectionId, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         menu.setAdapter(adapter);
+        menu.setSelection(adapter.getCount() - 1);
+
+        return menu;
     }
 
     @Override
@@ -512,5 +631,27 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     public void onLowMemory() {
         super.onLowMemory();
         animalLocation.onLowMemory();
+    }
+
+    @Override
+    public void onMyLocationClick(@NonNull Location location) {
+        Log.d(TAG, "Current Locaton clicked");
+        LatLng position = new LatLng(location.getLatitude(), location.getLongitude());
+        setMapPosition(position);
+    }
+
+    @Override
+    public void onMapLongClick(LatLng position) {
+        Log.d(TAG, "On Map Clicked.");
+        setMapPosition(position);
+    }
+
+    private void setMapPosition(LatLng position) {
+        animalPos = position;
+        map.clear();
+        map.addMarker(new MarkerOptions().position(position));
+        moveCamera(position);
+        Toast.makeText(getContext(), "Position ausgewählt.",
+                Toast.LENGTH_SHORT).show();
     }
 }
