@@ -50,6 +50,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -94,7 +95,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     private static final int REQUEST_IMAGE_GET = 3;
     private static final int PERMISSION_CHOOSE_PICTURE = 4;
     private static final int DEFAULT_CAMERA_ZOOM = 10;
-    private static final int MAX_IMAGE_SIZE = 400;
+    private static final int MAX_IMAGE_SIZE = 800;
     private static final int IMAGE_QUALITY = 75;
     private static final String TAG = "AddAnimalFragment";
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
@@ -307,7 +308,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
             }
             advert.put("user_id", currentUser.getUid());
             advert.put("position", animalPos);
-            advert.put("created", (System.currentTimeMillis())/1000);
+            advert.put("created", FieldValue.serverTimestamp());
 
             String imageUUID = UUID.randomUUID().toString();
 
