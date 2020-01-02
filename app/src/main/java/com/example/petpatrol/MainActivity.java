@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         lostButton = findViewById(R.id.lostButton);
         foundButton = findViewById(R.id.foundButton);
-        addButton = findViewById(R.id.floatingAddButton);
+        addButton = findViewById(R.id.addButton);
         exitButton = findViewById(R.id.floatingExitButton);
 
         initializeButtons();
@@ -83,9 +83,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (i == R.id.menuSignOut) {
             Log.w("onClick", "Testing");
         }
-        if (i == R.id.floatingAddButton) {
+        if (i == R.id.addButton) {
             lostButton.setVisibility(View.GONE);
             foundButton.setVisibility(View.GONE);
+
+            Bundle arguments = new Bundle();
+
+            if(lostFragment.isVisible()) {
+                arguments.putString("role", "lost");
+            } else {
+                arguments.putString("role", "found");
+            }
+
+            addAnimalFragment.setArguments(arguments);
             switchFragment(addAnimalFragment);
         }
         Log.d("MainActivity", "clicked: " + i);

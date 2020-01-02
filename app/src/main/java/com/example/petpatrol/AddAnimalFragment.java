@@ -1,6 +1,5 @@
 package com.example.petpatrol;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -69,6 +68,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
 
 public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
@@ -87,11 +87,13 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     private LatLng animalPos = null;
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int PERMISSION_GET_LOCATION = 2;
     private static final int REQUEST_IMAGE_GET = 3;
+    private static final int PERMISSION_CHOOSE_PICTURE = 4;
     private static final String TAG = "AddAnimalFragment";
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
-    private boolean localizationPermitted = true;
     private boolean tagEnabled = false;
+    private String collection;
 
     public interface ResetButtons {
         public void resetButtons();
@@ -112,6 +114,21 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         View view = inflater.inflate(R.layout.fragment_add_animal, parent, false);
         fbFirestore = FirebaseFirestore.getInstance();
         fbStorage = FirebaseStorage.getInstance();
+
+        String role = getArguments().getString("role");
+
+        if (role == null) {
+            Log.e(TAG, "No value found for role in fragment arguments.");
+            getFragmentManager().popBackStack();
+        } else {
+            if (role.equals("lost") || role.equals("found")) {
+                Log.d(TAG, "Role: " + role);
+                collection = role;
+            } else {
+                Log.e(TAG, "No matching role Value in fragment arguments.");
+                getFragmentManager().popBackStack();
+            }
+        }
 
         initMapView(view, savedInstanceState);
 
@@ -145,17 +162,17 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
 
         if(!setDeviceLocationSuccessful()){
             Log.d(TAG, "setInitialLocation: Setting default location.");
-            setDefaultLocation();
+//            setDefaultLocation();
         }
     }
 
     private boolean setDeviceLocationSuccessful() {
         FusedLocationProviderClient locationProvider = LocationServices
                 .getFusedLocationProviderClient(getContext());
-
-        try{
-            if(localizationPermitted){
-
+        int permission = ActivityCompat.checkSelfPermission(getContext(), ACCESS_COARSE_LOCATION);
+        int granted = getActivity().getPackageManager().PERMISSION_GRANTED;
+        if (permission == granted) {
+            try{
                 final Task location = locationProvider.getLastLocation();
                 location.addOnCompleteListener(new OnCompleteListener() {
                     @Override
@@ -172,13 +189,12 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
                     }
                 });
                 return true;
-            } else {
-                Log.d(TAG, "setInitialLocation: current location is null.");
-                Toast.makeText(getContext(), "unable to get current location",
-                        Toast.LENGTH_SHORT).show();
+            }catch (SecurityException e){
+                Log.e(TAG, "setInitialLocation: SecurityException: " + e.getMessage() );
             }
-        }catch (SecurityException e){
-            Log.e(TAG, "setInitialLocation: SecurityException: " + e.getMessage() );
+        } else {
+            Log.d(TAG, "setInitialLocation: unable to set current location. Permissions.");
+            requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, PERMISSION_GET_LOCATION);
         }
         return false;
     }
@@ -198,9 +214,6 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        getActivity().findViewById(R.id.lostButton).setVisibility(View.GONE);
-        getActivity().findViewById(R.id.foundButton).setVisibility(View.GONE);
-
         initAddButton(view);
         initExitButton(view);
         initAddImageButton(view);
@@ -235,7 +248,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
 
     private void initAddButton(View view) {
         final FrameLayout foundLayout = (FrameLayout) view.getParent();
-        FloatingActionButton addButton = foundLayout.findViewById(R.id.floatingAddButton);
+        FloatingActionButton addButton = foundLayout.findViewById(R.id.addButton);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -348,7 +361,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
 
                 advert.put("created", (System.currentTimeMillis())/1000);
 
-                fbFirestore.collection("lost")
+                fbFirestore.collection(collection)
                         .add(advert)
                         .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                             @Override
@@ -441,11 +454,11 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         });
     }
 
-    private void dispatchTakePictureIntent() {
+    private void takePicture() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        }
+            if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
     }
 
     @Override
@@ -457,7 +470,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
             Bitmap imageBitmap = (Bitmap) extras.get("data");
             File outputDir = getContext().getCacheDir();
             try {
-                File outputFile = File.createTempFile("petpatrol_temp_img", "jpg", outputDir );
+                File outputFile = File.createTempFile("petpatrol_temp", "jpg", outputDir);
                 OutputStream stream = new FileOutputStream(outputFile);
                 imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
                 stream.close();
@@ -546,7 +559,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onTakePictureClick(DialogFragment dialog) {
-        dispatchTakePictureIntent();
+        takePicture();
     }
 
     @Override
@@ -555,26 +568,37 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private void choosePicture() {
-        if (ActivityCompat.checkSelfPermission(getContext(), READ_EXTERNAL_STORAGE) == getActivity().getPackageManager().PERMISSION_GRANTED) {
+        int permission = ActivityCompat.checkSelfPermission(getContext(), READ_EXTERNAL_STORAGE);
+        int granted = getActivity().getPackageManager().PERMISSION_GRANTED;
+        if (permission == granted) {
             Intent intent = new Intent(Intent.ACTION_PICK);
             intent.setType("image/*");
             startActivityForResult(intent, REQUEST_IMAGE_GET);
         } else {
-            ActivityCompat.requestPermissions(getActivity(),
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 4);
+            requestPermissions(new String[]{READ_EXTERNAL_STORAGE}, PERMISSION_CHOOSE_PICTURE);
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        boolean hasResults = grantResults.length > 0;
         switch (requestCode) {
-            case 4:  {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            case PERMISSION_CHOOSE_PICTURE:
+                if (hasResults && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     choosePicture();
+                } else {
+                    Log.d(TAG, "Permissions for choosing picture not granted!");
                 }
-            }
+                return;
+            case PERMISSION_GET_LOCATION:
+                if ( hasResults && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    setInitialLocation();
+                } else {
+                    Log.d(TAG, "Permissions for getting current location not granted!");
+                    setDefaultLocation();
+                }
+                return;
         }
     }
 
