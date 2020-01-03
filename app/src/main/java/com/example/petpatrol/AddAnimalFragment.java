@@ -3,6 +3,7 @@ package com.example.petpatrol;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
@@ -117,6 +118,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_add_animal, parent, false);
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         fbFirestore = FirebaseFirestore.getInstance();
         fbStorage = FirebaseStorage.getInstance();
 
@@ -634,6 +636,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
     public void onDestroy() {
         super.onDestroy();
         animalLocation.onDestroy();
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     @Override

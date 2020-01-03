@@ -17,10 +17,13 @@ import com.google.firebase.storage.StorageReference;
 
 public class AnimalAdvertViewHolder extends RecyclerView.ViewHolder {
     private View view;
+    private ImageView imageView;
+    private Bitmap bitmap;
 
     AnimalAdvertViewHolder(View itemView) {
         super(itemView);
         view = itemView;
+        imageView = view.findViewById(R.id.advert_image_view);
         view.findViewById(R.id.advert).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -46,7 +49,7 @@ public class AnimalAdvertViewHolder extends RecyclerView.ViewHolder {
         imageRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
             @Override
             public void onSuccess(byte[] bytes) {
-                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                 if (bitmap == null) {
                     Log.d("TEST", "bitmap could not be loaded");
                 }

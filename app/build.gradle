@@ -37,7 +37,10 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage:19.1.0'
 
     //Firebase-UI Library
-    implementation 'com.firebaseui:firebase-ui-database:6.2.0'
+//    implementation 'com.firebaseui:firebase-ui-database:6.2.0'
+//    implementation 'com.firebaseui:firebase-ui-storage:6.2.0'
+//    annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
+
 
     //Android Paging Libray
     implementation "androidx.paging:paging-runtime:2.1.1"
