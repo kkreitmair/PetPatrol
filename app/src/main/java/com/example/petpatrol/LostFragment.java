@@ -1,6 +1,7 @@
 package com.example.petpatrol;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,6 +69,13 @@ public class LostFragment extends Fragment {
                         String imageName = model.getImage();
                         holder.setTitle(advertTitle);
                         holder.setImage(imageName);
+
+                        holder.getAdvertView().setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Log.d("LostFragment","card clicked");
+                            }
+                        });
                     }
                 };
         advertContainer.setAdapter(adapter);
