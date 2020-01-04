@@ -16,20 +16,24 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 public class AnimalAdvertViewHolder extends RecyclerView.ViewHolder {
+
     private View view;
     private ImageView imageView;
     private Bitmap bitmap;
+    private StorageReference storageRef;
+    private FirebaseStorage fbStorage;
+    private static final String TAG = "AnimalAdvertViewHolder";
 
     AnimalAdvertViewHolder(View itemView) {
         super(itemView);
         view = itemView;
         imageView = view.findViewById(R.id.advert_image_view);
-        view.findViewById(R.id.advert).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d("Test", "card clicked");
-            }
-        });
+        fbStorage = FirebaseStorage.getInstance();
+        storageRef = fbStorage.getReference();
+    }
+
+    View getAdvertView() {
+        return this.view.findViewById(R.id.advert);
     }
 
     void setTitle(String advertTitle) {
@@ -38,12 +42,8 @@ public class AnimalAdvertViewHolder extends RecyclerView.ViewHolder {
     }
 
     void setImage(String imageName) {
-        FirebaseStorage fbStorage = FirebaseStorage.getInstance();
-        StorageReference storageRef = fbStorage.getReference();
-        Log.d("ViewHolder", "ImageName is: " + imageName);
+        Log.d(TAG, "ImageName is: " + imageName);
         final StorageReference imageRef = storageRef.child(imageName);
-
-        final ImageView imageView = view.findViewById(R.id.advert_image_view);
 
         final long ONE_MEGABYTE = 512 * 512;
         imageRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
@@ -51,14 +51,14 @@ public class AnimalAdvertViewHolder extends RecyclerView.ViewHolder {
             public void onSuccess(byte[] bytes) {
                 bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                 if (bitmap == null) {
-                    Log.d("TEST", "bitmap could not be loaded");
+                    Log.d(TAG, "bitmap could not be loaded");
                 }
                 imageView.setImageBitmap(bitmap);
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
-                Log.d("TEST", "Image could not be downloaded." + exception.getMessage());
+                Log.d(TAG, "Image could not be downloaded." + exception.getMessage());
             }
         });
     }
