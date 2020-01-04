@@ -2,20 +2,32 @@ package com.example.petpatrol;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+
+import java.util.HashMap;
+
 public class AnimalAdvertModel {
     private String title;
     private String animal;
     private String image;
     private String color;
     private String size;
+    private String tag;
+    private String tagType;
+    private LatLng position;
+    private static final String TAG = "AnimalAdvertModel";
 
     public AnimalAdvertModel(){}
 
-    public AnimalAdvertModel(String title, String animal, String image, String color, String size) {
+    public AnimalAdvertModel(String title, String animal, String image, String color, String size,
+                             String tag, String tagType, HashMap position) {
         this.title = title;
         this.animal = animal;
         this.color = color;
         this.size = size;
+        this.tag = tag;
+        this.tagType = tagType;
+        setPosition(position);
         setImage(image);
     }
 
@@ -41,6 +53,30 @@ public class AnimalAdvertModel {
 
     public String getTitle() {
         return title;
+    }
+
+    public String getColor() {
+        return this.color;
+    }
+
+    public String getSize() {
+        return this.size;
+    }
+
+    public String getTag() {
+        return this.tag;
+    }
+
+    public LatLng getPosition() {
+        return position;
+    }
+
+    public void setPosition(HashMap<String, Float> location) {
+        if (location == null) {
+            Log.d("test", "position is null");
+        }
+
+        this.position = new LatLng(location.get("latitude"), location.get("longitude"));
     }
 
     public String getImage() {

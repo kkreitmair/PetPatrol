@@ -62,4 +62,8 @@ public class AnimalAdvertViewHolder extends RecyclerView.ViewHolder {
             }
         });
     }
+
+    Bitmap getImageBitmap() {
+        return this.bitmap;
+    }
 }

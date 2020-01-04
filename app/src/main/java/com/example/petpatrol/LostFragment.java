@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.paging.PagedList;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -64,7 +65,7 @@ public class LostFragment extends Fragment {
                     @Override
                     protected void onBindViewHolder(@NonNull final AnimalAdvertViewHolder holder,
                                                     int position,
-                                                    @NonNull AnimalAdvertModel model) {
+                                                    @NonNull final AnimalAdvertModel model) {
                         String advertTitle = model.getTitle();
                         String imageName = model.getImage();
                         holder.setTitle(advertTitle);
@@ -74,6 +75,23 @@ public class LostFragment extends Fragment {
                             @Override
                             public void onClick(View v) {
                                 Log.d("LostFragment","card clicked");
+                                Bundle arguments = new Bundle();
+
+                                arguments.putString("animal", model.getAnimal());
+                                arguments.putString("color", model.getColor());
+                                arguments.putString("size", model.getSize());
+                                arguments.putString("tag", model.getTag());
+                                arguments.putParcelable("position", model.getPosition());
+                                arguments.putParcelable("image", holder.getImageBitmap());
+
+                                Fragment detailedAdvert = new DetailedAnimalFragment();
+
+                                detailedAdvert.setArguments(arguments);
+
+                                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                                ft.replace(R.id.fragmentContainer, detailedAdvert);
+                                ft.addToBackStack(null);
+                                ft.commit();
                             }
                         });
                     }
