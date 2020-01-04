@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/detailed_advert"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="100">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/basic_margin"
+        android:layout_marginTop="@dimen/basic_margin"
+        android:layout_marginRight="@dimen/basic_margin"
+        android:layout_weight="30"
+        app:srcCompat="@drawable/ic_menu_camera" />
+
+    <TextView
+        android:id="@+id/detailed_animal_animal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/basic_margin"
+        android:layout_marginRight="@dimen/basic_margin"
+        android:layout_weight="10"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/detailed_animal_color"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/basic_margin"
+        android:layout_marginRight="@dimen/basic_margin"
+        android:layout_weight="10"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/detailed_animal_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/basic_margin"
+        android:layout_marginRight="@dimen/basic_margin"
+        android:layout_weight="10"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/detailed_animal_tag"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/basic_margin"
+        android:layout_marginRight="@dimen/basic_margin"
+        android:layout_weight="10"
+        android:text="TextView" />
+
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/basic_margin"
+        android:layout_marginRight="@dimen/basic_margin"
+        android:layout_marginBottom="@dimen/basic_margin"
+        android:layout_weight="30" />
+</LinearLayout>
