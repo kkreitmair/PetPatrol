@@ -36,11 +36,10 @@
             android:id="@+id/advert_title_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/basic_margin"
             android:text="new Text"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="@+id/advert_image_view"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/advert_image_view" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>
