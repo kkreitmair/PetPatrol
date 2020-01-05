@@ -8,6 +8,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -37,6 +38,7 @@ public class LostFragment extends Fragment {
         firestoreDB = FirebaseFirestore.getInstance();
 
         View view = inflater.inflate(R.layout.fragment_lost, parent, false);
+
         advertContainer = view.findViewById(R.id.lost_advert_container);
 
         advertContainer.setLayoutManager(new LinearLayoutManager(getContext()){
