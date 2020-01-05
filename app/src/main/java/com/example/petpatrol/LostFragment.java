@@ -3,6 +3,9 @@ package com.example.petpatrol;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -29,6 +32,8 @@ public class LostFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+
         firestoreDB = FirebaseFirestore.getInstance();
 
         View view = inflater.inflate(R.layout.fragment_lost, parent, false);
@@ -117,4 +122,43 @@ public class LostFragment extends Fragment {
 //            }
 //        });
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        final MenuItem fav = menu.add("Search");
+//        fav.setVisible(true);
+        fav.setIcon(R.drawable.ic_search);
+        fav.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        fav.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == fav.getItemId()) {
+                    Log.d(TAG, "my icon clicked");
+                    Fragment searchMenu = new SearchMenuFragment();
+
+                    FragmentTransaction ft = getFragmentManager().beginTransaction();
+                    ft.add(R.id.fragmentContainer, searchMenu);
+                    ft.addToBackStack(null);
+                    ft.commit();
+                }
+                return false;
+            }
+        });
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        Log.d(TAG, "menu icon clicked");
+//        switch (item.getItemId()) {
+//            case R.id.app_bar_search:
+//                Log.d(TAG, "search icon clicked");
+//                return true;
+//
+//            default:
+//                return super.onOptionsItemSelected(item);
+//
+//        }
+//    }
+
 }
