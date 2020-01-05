@@ -458,6 +458,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
                 getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
         autocompleteFragment.setPlaceFields(fields);
+        autocompleteFragment.setHint(getString(R.string.add_animal_hint_location));
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {

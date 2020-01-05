@@ -108,6 +108,7 @@ public class SearchMenuFragment extends Fragment {
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
                 getChildFragmentManager().findFragmentById(R.id.search_location);
         autocompleteFragment.setPlaceFields(fields);
+        autocompleteFragment.setHint(getString(R.string.add_animal_hint_location));
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
