@@ -25,6 +25,7 @@ public class LostFragment extends Fragment {
 
     private RecyclerView advertContainer;
     private FirebaseFirestore firestoreDB;
+    private static final String TAG = "LostFragment";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -66,6 +67,7 @@ public class LostFragment extends Fragment {
                     protected void onBindViewHolder(@NonNull final AnimalAdvertViewHolder holder,
                                                     int position,
                                                     @NonNull final AnimalAdvertModel model) {
+                        Log.d(TAG,"Holder: new Holder created.");
                         String advertTitle = model.getTitle();
                         String imageName = model.getImage();
                         holder.setTitle(advertTitle);
@@ -74,7 +76,7 @@ public class LostFragment extends Fragment {
                         holder.getAdvertView().setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Log.d("LostFragment","card clicked");
+                                Log.d(TAG,"card clicked");
                                 Bundle arguments = new Bundle();
 
                                 arguments.putString("animal", model.getAnimal());
@@ -89,7 +91,7 @@ public class LostFragment extends Fragment {
                                 detailedAdvert.setArguments(arguments);
 
                                 FragmentTransaction ft = getFragmentManager().beginTransaction();
-                                ft.replace(R.id.fragmentContainer, detailedAdvert);
+                                ft.add(R.id.fragmentContainer, detailedAdvert);
                                 ft.addToBackStack(null);
                                 ft.commit();
                             }
