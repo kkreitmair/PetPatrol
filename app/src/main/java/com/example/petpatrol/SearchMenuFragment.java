@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
@@ -54,6 +55,7 @@ public class SearchMenuFragment extends Fragment {
 
         initSpinners(view);
         initSearchLocation();
+        initSearchButton(view);
 
         return view;
     }
@@ -95,6 +97,17 @@ public class SearchMenuFragment extends Fragment {
         menu.setSelection(adapter.getCount() - 1);
 
         return menu;
+    }
+
+    private void initSearchButton(View view) {
+        Button searchButton = view.findViewById(R.id.search_start_button);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "Start search Button clicked");
+                getActivity().getSupportFragmentManager().popBackStack();
+            }
+        });
     }
 
     private void initSearchLocation() {

@@ -77,4 +77,10 @@
             app:srcCompat="@drawable/ic_my_location" />
     </LinearLayout>
 
+    <Button
+        android:id="@+id/search_start_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/search_start_button" />
+
 </LinearLayout>
