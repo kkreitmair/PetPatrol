@@ -60,6 +60,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ft.commit();
     }
 
+    private void addFragment(Fragment fragment) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.add(R.id.fragmentContainer, fragment);
+        ft.addToBackStack(null);
+        ft.commit();
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
@@ -96,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             addAnimalFragment.setArguments(arguments);
-            switchFragment(addAnimalFragment);
+            addFragment(addAnimalFragment);
         }
         Log.d("MainActivity", "clicked: " + i);
     }
