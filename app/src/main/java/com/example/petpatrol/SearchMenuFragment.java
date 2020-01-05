@@ -8,14 +8,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class SearchMenuFragment extends Fragment {
 
@@ -37,6 +44,7 @@ public class SearchMenuFragment extends Fragment {
 
     private boolean tagEnabled = false;
     private FloatingActionButton addButton;
+    private LatLng location;
     private static final String TAG = "SearchMenuFragment";
 
     @Override
@@ -45,6 +53,7 @@ public class SearchMenuFragment extends Fragment {
         View view = inflater.inflate(R.layout.search_filter, parent, false);
 
         initSpinners(view);
+        initSearchLocation();
 
         return view;
     }
@@ -88,14 +97,29 @@ public class SearchMenuFragment extends Fragment {
         return menu;
     }
 
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        FrameLayout layout = (FrameLayout) view.getParent();
-        ConstraintLayout mainLayout = (ConstraintLayout) layout.getParent();
-//        addButton = layout.findViewById(R.id.addButton);
-//        addButton.hide();
-//        mainLayout.findViewById(R.id.lostButton).setVisibility(View.INVISIBLE);
-//        mainLayout.findViewById(R.id.foundButton).setVisibility(View.INVISIBLE);
+    private void initSearchLocation() {
+        Places.initialize(getContext(), getResources().getString(R.string.google_maps_key));
+        Places.createClient(getContext());
+
+        List<Place.Field> fields = Arrays.asList(Place.Field.ID,
+                Place.Field.NAME,
+                Place.Field.LAT_LNG);
+
+        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
+                getChildFragmentManager().findFragmentById(R.id.search_location);
+        autocompleteFragment.setPlaceFields(fields);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                Log.d(TAG, "Place: " + place.getName() + ", " + place.getId());
+                location = place.getLatLng();
+            }
+
+            @Override
+            public void onError(Status status) {
+                Log.d(TAG, "An error occurred: " + status);
+            }
+        });
     }
 
     @Override
