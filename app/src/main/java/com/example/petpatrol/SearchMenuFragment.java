@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.model.LatLng;
@@ -44,20 +45,24 @@ public class SearchMenuFragment extends Fragment {
     }
 
     private boolean tagEnabled = false;
+    private View searchView;
     private FloatingActionButton addButton;
     private LatLng location;
+    private SearchFilterViewModel model;
     private static final String TAG = "SearchMenuFragment";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.search_filter, parent, false);
+        searchView = inflater.inflate(R.layout.search_filter, parent, false);
 
-        initSpinners(view);
+        model = ViewModelProviders.of(getActivity()).get(SearchFilterViewModel.class);
+
+        initSpinners(searchView);
         initSearchLocation();
-        initSearchButton(view);
+        initSearchButton(searchView);
 
-        return view;
+        return searchView;
     }
 
     private void initSpinners(View view) {
@@ -100,14 +105,34 @@ public class SearchMenuFragment extends Fragment {
     }
 
     private void initSearchButton(View view) {
+        final Spinner animalSpinner = view.findViewById(R.id.search_animal);
         Button searchButton = view.findViewById(R.id.search_start_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "Start search Button clicked");
+                String animal = animalSpinner.getSelectedItem().toString();
+                String animalHint = getString(R.string.add_animal_hint_animal);
+                if (inputIsValid(animal, animalHint)) {
+                    model.setFilter(animal);
+                }
                 getActivity().getSupportFragmentManager().popBackStack();
             }
         });
+    }
+
+    private boolean inputIsValid(Object input, String inputHint) {
+            if (input != null) {
+                if (input instanceof String) {
+                    String text = (String) input;
+                    if (text.isEmpty() || text.equals(inputHint)) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+            }
+            return false;
     }
 
     private void initSearchLocation() {

@@ -8,10 +8,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.paging.PagedList;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,11 +33,25 @@ public class LostFragment extends Fragment {
     private RecyclerView advertContainer;
     private FirebaseFirestore firestoreDB;
     private Fragment searchMenu = new SearchMenuFragment();
+    private FirestorePagingAdapter<AnimalAdvertModel, AnimalAdvertViewHolder> adapter;
     private static final String TAG = "LostFragment";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         setHasOptionsMenu(true);
+
+        final SearchFilterViewModel model = ViewModelProviders.of(getActivity()).get(SearchFilterViewModel.class);
+
+        model.getAnimal().observe(this, new Observer() {
+            @Override
+            public void onChanged(@Nullable Object o) {
+                SearchFilter filter = (SearchFilter) o;
+                Toast.makeText(getContext(), "Filter ViewModel has changed!", Toast.LENGTH_SHORT).show();
+                adapter = getAdapter(filter.getQuery());
+                advertContainer.getLayoutManager().removeAllViews();
+                advertContainer.setAdapter(adapter);
+            }
+        });
 
         firestoreDB = FirebaseFirestore.getInstance();
 
@@ -47,9 +65,15 @@ public class LostFragment extends Fragment {
                 super.onLayoutCompleted(state);
             }
         });
-
         final CollectionReference lostCollection = firestoreDB.collection("lost");
         Query query = lostCollection;
+        adapter = getAdapter(query);
+        advertContainer.setAdapter(adapter);
+
+        return view;
+    }
+
+    private FirestorePagingAdapter<AnimalAdvertModel, AnimalAdvertViewHolder> getAdapter(Query query) {
         PagedList.Config config = new PagedList.Config.Builder()
                 .setEnablePlaceholders(false)
                 .setPrefetchDistance(3)
@@ -61,52 +85,52 @@ public class LostFragment extends Fragment {
                 .setQuery(query, config, AnimalAdvertModel.class)
                 .build();
 
-        FirestorePagingAdapter<AnimalAdvertModel, AnimalAdvertViewHolder> adapter =
+        FirestorePagingAdapter<AnimalAdvertModel, AnimalAdvertViewHolder> newAdapter =
                 new FirestorePagingAdapter<AnimalAdvertModel, AnimalAdvertViewHolder>(options) {
-                    @NonNull
+            @NonNull
+            @Override
+            public AnimalAdvertViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.advert, parent, false);
+                return new AnimalAdvertViewHolder(view);
+            }
+
+            @Override
+            protected void onBindViewHolder(@NonNull final AnimalAdvertViewHolder holder,
+                                            int position,
+                                            @NonNull final AnimalAdvertModel model) {
+                Log.d(TAG,"Holder: new Holder created.");
+                String advertTitle = model.getTitle();
+                String imageName = model.getImage();
+                holder.setTitle(advertTitle);
+                holder.setImage(imageName);
+
+                holder.getAdvertView().setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public AnimalAdvertViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.advert, parent, false);
-                        return new AnimalAdvertViewHolder(view);
+                    public void onClick(View v) {
+                        Log.d(TAG,"card clicked");
+                        Bundle arguments = new Bundle();
+
+                        arguments.putString("animal", model.getAnimal());
+                        arguments.putString("color", model.getColor());
+                        arguments.putString("size", model.getSize());
+                        arguments.putString("tag", model.getTag());
+                        arguments.putParcelable("position", model.getPosition());
+                        arguments.putParcelable("image", holder.getImageBitmap());
+
+                        Fragment detailedAdvert = new DetailedAnimalFragment();
+
+                        detailedAdvert.setArguments(arguments);
+
+                        FragmentTransaction ft = getFragmentManager().beginTransaction();
+                        ft.add(R.id.fragmentContainer, detailedAdvert);
+                        ft.addToBackStack(null);
+                        ft.commit();
                     }
+                });
+            }
+        };
 
-                    @Override
-                    protected void onBindViewHolder(@NonNull final AnimalAdvertViewHolder holder,
-                                                    int position,
-                                                    @NonNull final AnimalAdvertModel model) {
-                        Log.d(TAG,"Holder: new Holder created.");
-                        String advertTitle = model.getTitle();
-                        String imageName = model.getImage();
-                        holder.setTitle(advertTitle);
-                        holder.setImage(imageName);
-
-                        holder.getAdvertView().setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Log.d(TAG,"card clicked");
-                                Bundle arguments = new Bundle();
-
-                                arguments.putString("animal", model.getAnimal());
-                                arguments.putString("color", model.getColor());
-                                arguments.putString("size", model.getSize());
-                                arguments.putString("tag", model.getTag());
-                                arguments.putParcelable("position", model.getPosition());
-                                arguments.putParcelable("image", holder.getImageBitmap());
-
-                                Fragment detailedAdvert = new DetailedAnimalFragment();
-
-                                detailedAdvert.setArguments(arguments);
-
-                                FragmentTransaction ft = getFragmentManager().beginTransaction();
-                                ft.add(R.id.fragmentContainer, detailedAdvert);
-                                ft.addToBackStack(null);
-                                ft.commit();
-                            }
-                        });
-                    }
-                };
-        advertContainer.setAdapter(adapter);
-        return view;
+        return newAdapter;
     }
 
     @Override
