@@ -28,6 +28,7 @@ public class LostFragment extends Fragment {
 
     private RecyclerView advertContainer;
     private FirebaseFirestore firestoreDB;
+    private Fragment searchMenu = new SearchMenuFragment();
     private static final String TAG = "LostFragment";
 
     @Override
@@ -135,13 +136,17 @@ public class LostFragment extends Fragment {
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == search.getItemId()) {
                     Log.d(TAG, "my icon clicked");
-                    Fragment searchMenu = new SearchMenuFragment();
 
-                    FragmentTransaction ft = getFragmentManager().beginTransaction();
-                    ft.add(R.id.fragmentContainer, searchMenu);
-                    ft.addToBackStack(null);
-                    ft.commit();
-                    return true;
+                    if (searchMenu.isVisible()) {
+                        getActivity().getSupportFragmentManager().popBackStack();
+                        return true;
+                    } else {
+                        FragmentTransaction ft = getFragmentManager().beginTransaction();
+                        ft.add(R.id.fragmentContainer, searchMenu);
+                        ft.addToBackStack(null);
+                        ft.commit();
+                        return true;
+                    }
                 }
                 return false;
             }
