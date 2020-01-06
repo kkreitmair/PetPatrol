@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
@@ -47,7 +48,7 @@ public class SearchMenuFragment extends Fragment {
     private boolean tagEnabled = false;
     private View searchView;
     private FloatingActionButton addButton;
-    private LatLng location;
+    private LatLng location = null;
     private SearchFilterViewModel model;
     private static final String TAG = "SearchMenuFragment";
 
@@ -105,34 +106,39 @@ public class SearchMenuFragment extends Fragment {
     }
 
     private void initSearchButton(View view) {
+        final EditText titleText = view.findViewById(R.id.search_title);
         final Spinner animalSpinner = view.findViewById(R.id.search_animal);
+        final Spinner colorSpinner = view.findViewById(R.id.search_color);
+        final Spinner sizeSpinner = view.findViewById(R.id.search_size);
+        final Spinner tagTypeSpinner = view.findViewById(R.id.search_tag_type);
+        final EditText tagText = view.findViewById(R.id.search_tag);
         Button searchButton = view.findViewById(R.id.search_start_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "Start search Button clicked");
-                String animal = animalSpinner.getSelectedItem().toString();
-                String animalHint = getString(R.string.add_animal_hint_animal);
-                if (inputIsValid(animal, animalHint)) {
-                    model.setFilter(getContext(), animal);
-                }
+                String title = getInputValue(titleText);
+                String animal = getInputValue(animalSpinner);
+                String color = getInputValue(colorSpinner);
+                String size = getInputValue(sizeSpinner);
+                String tagType = getInputValue(tagTypeSpinner);
+                String tag = getInputValue(tagText);
+                model.setFilter(getContext(), title, animal, color, size, tagType, tag, location);
                 getActivity().getSupportFragmentManager().popBackStack();
             }
         });
     }
 
-    private boolean inputIsValid(Object input, String inputHint) {
-            if (input != null) {
-                if (input instanceof String) {
-                    String text = (String) input;
-                    if (text.isEmpty() || text.equals(inputHint)) {
-                        return false;
-                    } else {
-                        return true;
-                    }
-                }
-            }
-            return false;
+    private String getInputValue(Object input) {
+        if (input instanceof Spinner) {
+            Spinner spinner = (Spinner) input;
+            return spinner.getSelectedItem().toString();
+        }
+        if (input instanceof EditText) {
+            EditText text = (EditText) input;
+            return text.getText().toString();
+        }
+        return null;
     }
 
     private void initSearchLocation() {

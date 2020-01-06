@@ -8,7 +8,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -45,8 +44,8 @@ public class LostFragment extends Fragment {
         model.getFilter().observe(this, new Observer() {
             @Override
             public void onChanged(@Nullable Object o) {
+                Log.d(TAG, "Search filter has changed.");
                 SearchFilter filter = (SearchFilter) o;
-                Toast.makeText(getContext(), "Filter ViewModel has changed!", Toast.LENGTH_SHORT).show();
                 adapter = getAdapter(filter.getQuery());
                 advertContainer.getLayoutManager().removeAllViews();
                 advertContainer.setAdapter(adapter);
