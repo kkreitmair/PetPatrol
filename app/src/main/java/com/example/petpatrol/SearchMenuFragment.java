@@ -114,7 +114,7 @@ public class SearchMenuFragment extends Fragment {
                 String animal = animalSpinner.getSelectedItem().toString();
                 String animalHint = getString(R.string.add_animal_hint_animal);
                 if (inputIsValid(animal, animalHint)) {
-                    model.setFilter(animal);
+                    model.setFilter(getContext(), animal);
                 }
                 getActivity().getSupportFragmentManager().popBackStack();
             }

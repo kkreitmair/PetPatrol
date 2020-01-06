@@ -42,7 +42,7 @@ public class LostFragment extends Fragment {
 
         final SearchFilterViewModel model = ViewModelProviders.of(getActivity()).get(SearchFilterViewModel.class);
 
-        model.getAnimal().observe(this, new Observer() {
+        model.getFilter().observe(this, new Observer() {
             @Override
             public void onChanged(@Nullable Object o) {
                 SearchFilter filter = (SearchFilter) o;

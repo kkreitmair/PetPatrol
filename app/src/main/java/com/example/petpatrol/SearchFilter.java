@@ -5,9 +5,12 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
+import android.content.Context;
+
 public class SearchFilter {
 
     private FirebaseFirestore firestoreDB;
+    private Context context;
     private String title;
     private String animal;
     private String color;
@@ -16,7 +19,8 @@ public class SearchFilter {
     private String tag;
     private LatLng location;
 
-    public SearchFilter(){
+    public SearchFilter(Context context){
+        this.context = context;
         firestoreDB = FirebaseFirestore.getInstance();
     }
 
@@ -25,7 +29,23 @@ public class SearchFilter {
     }
 
     public void setAnimal(String animal) {
-        this.animal = animal;
+        boolean found = false;
+        String hintText = context.getResources().getString(R.string.add_animal_hint_animal);
+
+        if (!animal.equals(hintText)) {
+            String[] values = getValues(R.array.selection_animal);
+            for (String value : values) {
+                if (animal.equals(value)) {
+                    found = true;
+                }
+            }
+        }
+
+        if (found) {
+            this.animal = animal;
+        } else {
+            this.animal = "";
+        }
     }
 
     public void setColor(String color) {
@@ -50,8 +70,17 @@ public class SearchFilter {
 
     public Query getQuery() {
         CollectionReference lostCollection = firestoreDB.collection("lost");
+        Query query;
+        if (!animal.equals("")) {
+             query = lostCollection.whereEqualTo("animal", animal);
+        } else {
+            query = lostCollection;
+        }
 
-        Query query = lostCollection.whereEqualTo("animal", animal);
         return query;
+    }
+
+    private String[] getValues(int selctionId) {
+        return context.getResources().getStringArray(selctionId);
     }
 }
