@@ -3,6 +3,7 @@ package com.example.petpatrol;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -63,12 +65,14 @@ public class DetailedAnimalFragment extends Fragment implements OnMapReadyCallba
         TextView animalText = fragment.findViewById(R.id.detailed_animal_animal);
         TextView colorText = fragment.findViewById(R.id.detailed_animal_color);
         TextView sizeText = fragment.findViewById(R.id.detailed_animal_size);
+        TextView tagTypeText = fragment.findViewById(R.id.detailed_animal_tag_type);
         TextView tagText = fragment.findViewById(R.id.detailed_animal_tag);
 
         String animal = getArguments().getString("animal");
         String color = getArguments().getString("color");
         String size = getArguments().getString("size");
         String tag = getArguments().getString("tag");
+        String tagType = getArguments().getString("tagType");
         animalLocation = getArguments().getParcelable("position");
         Bitmap bitmap = getArguments().getParcelable("image");
 
@@ -76,6 +80,7 @@ public class DetailedAnimalFragment extends Fragment implements OnMapReadyCallba
         animalText.setText(animal);
         colorText.setText(color);
         sizeText.setText(size);
+        tagTypeText.setText(tagType);
         tagText.setText(tag);
 
         return view;
@@ -97,10 +102,10 @@ public class DetailedAnimalFragment extends Fragment implements OnMapReadyCallba
 
         map = googleMap;
         map.getUiSettings().setZoomControlsEnabled(false);
-//        new LatLng(52.5, 13.4),
         if (animalLocation == null) {
             animalLocation =  new LatLng(52.5, 13.4);
         }
+        map.addCircle(new CircleOptions().center(animalLocation).radius(2500.0)).setStrokeColor(Color.RED);
         map.addMarker(new MarkerOptions().position(animalLocation));
         map.moveCamera(CameraUpdateFactory.newLatLngZoom( animalLocation, 10));
     }

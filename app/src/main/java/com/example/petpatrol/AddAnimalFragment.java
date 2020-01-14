@@ -305,10 +305,10 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
             advert.put("size", size);
             advert.put("color", color);
             if (tagEnabled) {
-                advert.put("tag_type", tagType);
+                advert.put("tagType", tagType);
                 advert.put("tag", tag);
             } else {
-                advert.put("tag_type", "");
+                advert.put("tagType", "");
                 advert.put("tag", "");
             }
             advert.put("user_id", currentUser.getUid());

@@ -19,19 +19,15 @@ public class AnimalAdvertModel {
 
     public AnimalAdvertModel(){}
 
-    public AnimalAdvertModel(String title, String animal, String image, String color, String size,
-                             String tag, String tagType, HashMap position) {
+    public void setTitle(String title) {
         this.title = title;
-        this.animal = animal;
-        this.color = color;
-        this.size = size;
-        this.tag = tag;
-        this.tagType = tagType;
-        setPosition(position);
-        setImage(image);
     }
 
-    private void setImage(String imageName) {
+    public void setAnimal(String animal) {
+        this.animal = animal;
+    }
+
+    public void setImage(String imageName) {
         Log.d("AdvertModel", "ImageName: " + imageName);
         String defaultName = "images/test1.jpg";
         if (imageName == null) {
@@ -47,12 +43,38 @@ public class AnimalAdvertModel {
         this.image = imageName;
     }
 
-    public String getAnimal() {
-        return animal;
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    public void setTagType(String tagType) {
+        this.tagType = tagType;
+    }
+
+    public void setPosition(HashMap<String, Float> location) {
+        if (location == null) {
+            Log.d("test", "position is null");
+        }
+
+        this.position = new LatLng(location.get("latitude"), location.get("longitude"));
     }
 
     public String getTitle() {
         return title;
+    }
+
+    public String getAnimal() { return animal; }
+
+    public String getImage() {
+        return image;
     }
 
     public String getColor() {
@@ -67,19 +89,11 @@ public class AnimalAdvertModel {
         return this.tag;
     }
 
+    public String getTagType() {
+        return this.tagType;
+    }
+
     public LatLng getPosition() {
         return position;
-    }
-
-    public void setPosition(HashMap<String, Float> location) {
-        if (location == null) {
-            Log.d("test", "position is null");
-        }
-
-        this.position = new LatLng(location.get("latitude"), location.get("longitude"));
-    }
-
-    public String getImage() {
-        return image;
     }
 }

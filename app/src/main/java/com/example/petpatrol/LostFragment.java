@@ -113,6 +113,7 @@ public class LostFragment extends Fragment {
                         arguments.putString("color", model.getColor());
                         arguments.putString("size", model.getSize());
                         arguments.putString("tag", model.getTag());
+                        arguments.putString("tagType", model.getTagType());
                         arguments.putParcelable("position", model.getPosition());
                         arguments.putParcelable("image", holder.getImageBitmap());
 
