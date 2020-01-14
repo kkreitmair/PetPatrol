@@ -69,6 +69,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import ch.hsr.geohash.GeoHash;
+
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
@@ -245,6 +247,7 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
 
     private Map<String, Object> createAdvert(FrameLayout layout) {
         inputIsValid = true;
+
         FirebaseAuth firebase = FirebaseAuth.getInstance();
 
         EditText advertTitle = layout.findViewById(R.id.animal_advert_title);
@@ -310,6 +313,8 @@ public class AddAnimalFragment extends Fragment implements OnMapReadyCallback,
             }
             advert.put("user_id", currentUser.getUid());
             advert.put("position", animalPos);
+            GeoHash geoHash = GeoHash.withCharacterPrecision(animalPos.latitude, animalPos.longitude, 12);
+            advert.put("geohash", geoHash.toBase32());
             advert.put("created", FieldValue.serverTimestamp());
 
             String imageUUID = UUID.randomUUID().toString();

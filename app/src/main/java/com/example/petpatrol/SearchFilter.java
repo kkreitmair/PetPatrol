@@ -8,6 +8,8 @@ import com.google.firebase.firestore.Query;
 import android.content.Context;
 import android.util.Log;
 
+import ch.hsr.geohash.GeoHash;
+
 public class SearchFilter {
 
     private FirebaseFirestore firestoreDB;
@@ -19,6 +21,7 @@ public class SearchFilter {
     private String tagType;
     private String tag;
     private LatLng location;
+    private String geoHash;
     private static final String TAG = "SearchFilter";
 
     public SearchFilter(Context context, String title, String animal, String color, String size,
@@ -75,7 +78,17 @@ public class SearchFilter {
     }
 
     public void setLocation(LatLng location) {
-        this.location = null;
+        this.location = location;
+        setGeoHash();
+    }
+
+    public void setGeoHash() {
+        if (location != null) {
+            GeoHash geoHash = GeoHash.withCharacterPrecision(location.latitude, location.longitude, 12);
+            this.geoHash = geoHash.toBase32();
+        } else {
+            this.geoHash = null;
+        }
     }
 
     public Query getQuery() {
@@ -105,9 +118,9 @@ public class SearchFilter {
             Log.d(TAG, "added to filter: tag");
             query = query.whereEqualTo("tag", tag);
         }
-        if (location != null) {
+        if (geoHash != null) {
             Log.d(TAG, "added to filter: location");
-            query = query.whereEqualTo("location", location);
+            query = query.orderBy("geohash").startAt(geoHash.substring(0, 5)).endAt(geoHash.substring(0, 5) + "~");
         }
         return query;
     }
