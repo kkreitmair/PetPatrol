@@ -26,7 +26,7 @@
         android:layout_marginLeft="@dimen/basic_margin"
         android:layout_marginRight="@dimen/basic_margin"
         android:layout_weight="6"
-        android:text="TextView" />
+        android:text="Animal: " />
 
     <TextView
         android:id="@+id/detailed_animal_color"

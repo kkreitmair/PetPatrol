@@ -77,11 +77,11 @@ public class DetailedAnimalFragment extends Fragment implements OnMapReadyCallba
         Bitmap bitmap = getArguments().getParcelable("image");
 
         image.setImageBitmap(bitmap);
-        animalText.setText(animal);
-        colorText.setText(color);
-        sizeText.setText(size);
-        tagTypeText.setText(tagType);
-        tagText.setText(tag);
+        animalText.setText(getString(R.string.label_animal) + " " + animal);
+        colorText.setText(getString(R.string.label_color) + " " + color);
+        sizeText.setText(getString(R.string.label_size) + " " + size);
+        tagTypeText.setText(getString(R.string.label_tag_type) + " " + tagType);
+        tagText.setText(getString(R.string.label_tag) + " " + tag);
 
         return view;
     }

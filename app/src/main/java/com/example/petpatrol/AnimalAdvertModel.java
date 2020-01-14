@@ -7,13 +7,13 @@ import com.google.android.gms.maps.model.LatLng;
 import java.util.HashMap;
 
 public class AnimalAdvertModel {
-    private String title;
-    private String animal;
-    private String image;
-    private String color;
-    private String size;
-    private String tag;
-    private String tagType;
+    private String title  = "";
+    private String animal  = "";
+    private String image  = "";
+    private String color  = "";
+    private String size  = "";
+    private String tag  = "";
+    private String tagType = "";
     private LatLng position;
     private static final String TAG = "AnimalAdvertModel";
 
@@ -56,7 +56,11 @@ public class AnimalAdvertModel {
     }
 
     public void setTagType(String tagType) {
-        this.tagType = tagType;
+        if (tagType == null) {
+            this.tagType = "";
+        } else {
+            this.tagType = tagType;
+        }
     }
 
     public void setPosition(HashMap<String, Float> location) {
@@ -90,7 +94,7 @@ public class AnimalAdvertModel {
     }
 
     public String getTagType() {
-        return this.tagType;
+        return tagType;
     }
 
     public LatLng getPosition() {
