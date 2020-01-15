@@ -50,6 +50,7 @@ public class SearchMenuFragment extends Fragment {
     private FloatingActionButton addButton;
     private LatLng location = null;
     private SearchFilterViewModel model;
+    private String collection;
     private static final String TAG = "SearchMenuFragment";
 
     @Override
@@ -58,6 +59,8 @@ public class SearchMenuFragment extends Fragment {
         searchView = inflater.inflate(R.layout.search_filter, parent, false);
 
         model = ViewModelProviders.of(getActivity()).get(SearchFilterViewModel.class);
+
+        collection = getArguments().getString("collection");
 
         initSpinners(searchView);
         initSearchLocation();
@@ -123,7 +126,9 @@ public class SearchMenuFragment extends Fragment {
                 String size = getInputValue(sizeSpinner);
                 String tagType = getInputValue(tagTypeSpinner);
                 String tag = getInputValue(tagText);
-                model.setFilter(getContext(), title, animal, color, size, tagType, tag, location);
+                model.setFilter(getContext(), title, animal, color, size, tagType, tag, location,
+                        collection);
+                location = null;
                 getActivity().getSupportFragmentManager().popBackStack();
             }
         });

@@ -33,6 +33,7 @@ public class LostFragment extends Fragment {
     private FirebaseFirestore firestoreDB;
     private Fragment searchMenu = new SearchMenuFragment();
     private FirestorePagingAdapter<AnimalAdvertModel, AnimalAdvertViewHolder> adapter;
+    private String collection;
     private static final String TAG = "LostFragment";
 
     @Override
@@ -40,6 +41,8 @@ public class LostFragment extends Fragment {
         setHasOptionsMenu(true);
 
         final SearchFilterViewModel model = ViewModelProviders.of(getActivity()).get(SearchFilterViewModel.class);
+
+        collection = "lost";
 
         model.getFilter().observe(this, new Observer() {
             @Override
@@ -64,7 +67,7 @@ public class LostFragment extends Fragment {
                 super.onLayoutCompleted(state);
             }
         });
-        final CollectionReference lostCollection = firestoreDB.collection("lost");
+        final CollectionReference lostCollection = firestoreDB.collection(collection);
         Query query = lostCollection;
         adapter = getAdapter(query);
         advertContainer.setAdapter(adapter);
@@ -134,22 +137,6 @@ public class LostFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-//        FrameLayout foundLayout = (FrameLayout) view.getParent();
-//        FloatingActionButton addButton = foundLayout.findViewById(R.id.floatingAddButton);
-//        addButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                LayoutInflater inflater = getActivity().getLayoutInflater();
-//                View advert = inflater.inflate(R.layout.advert, null);
-//                TextView text = advert.findViewById(R.id.textView);
-//                text.setText("new test (add Button)");
-//                advertContainer.addView(advert, advertContainer.getChildCount());
-//            }
-//        });
-    }
-
-    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         final MenuItem search = menu.add("Search");
         search.setVisible(true);
@@ -165,6 +152,10 @@ public class LostFragment extends Fragment {
                         getActivity().getSupportFragmentManager().popBackStack();
                         return true;
                     } else {
+                        Bundle arguments = new Bundle();
+
+                        arguments.putString("collection", collection);
+                        searchMenu.setArguments(arguments);
                         FragmentTransaction ft = getFragmentManager().beginTransaction();
                         ft.add(R.id.fragmentContainer, searchMenu);
                         ft.addToBackStack(null);

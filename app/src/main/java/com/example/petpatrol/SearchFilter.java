@@ -22,10 +22,11 @@ public class SearchFilter {
     private String tag;
     private LatLng location;
     private String geoHash;
+    private String collection;
     private static final String TAG = "SearchFilter";
 
     public SearchFilter(Context context, String title, String animal, String color, String size,
-                        String tagType, String tag, LatLng location){
+                        String tagType, String tag, LatLng location, String collection){
         this.context = context;
         firestoreDB = FirebaseFirestore.getInstance();
         setTitle(title);
@@ -35,6 +36,7 @@ public class SearchFilter {
         setTagType(tagType);
         setTag(tag);
         setLocation(location);
+        setCollection(collection);
     }
 
     public void setTitle(String title) {
@@ -91,8 +93,20 @@ public class SearchFilter {
         }
     }
 
+    public void setCollection(String collection) {
+        if (collection != null) {
+            if (collection.equals("lost")) {
+                this.collection = "lost";
+            } else {
+                this.collection = "found";
+            }
+        } else {
+            this.collection = "lost";
+        }
+    }
+
     public Query getQuery() {
-        CollectionReference lostCollection = firestoreDB.collection("lost");
+        CollectionReference lostCollection = firestoreDB.collection(collection);
         Query query = lostCollection;
         if (title != null) {
             Log.d(TAG, "added to filter: title");

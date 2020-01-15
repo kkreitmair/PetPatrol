@@ -11,9 +11,9 @@ public class SearchFilterViewModel extends ViewModel {
     private final MutableLiveData<SearchFilter> filter = new MutableLiveData<>();
 
     public void setFilter(Context context, String title, String animal, String color, String size,
-                          String tagType, String tag, LatLng location) {
+                          String tagType, String tag, LatLng location, String collection) {
         SearchFilter filter = new SearchFilter(context, title, animal, color, size, tagType, tag,
-                location);
+                location, collection);
         this.filter.setValue(filter);
     }
 
