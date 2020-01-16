@@ -9,38 +9,25 @@
     android:orientation="vertical"
     android:weightSum="4">
 
-    <ImageView
-        android:id="@+id/googleIcon"
-        style="@style/ThemeOverlay.FirebaseIcon"
-        android:layout_width="359dp"
-        android:layout_height="117dp"
-        android:contentDescription="@string/desc_firebase_lockup"
-        android:src="@drawable/firebase_lockup_400"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.50"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
-
     <TextView
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/google_title_text"
+        android:text="@string/app_name"
+        android:textSize="48sp"
         android:theme="@style/ThemeOverlay.MyTitleText"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/googleIcon"
-        app:layout_constraintVertical_bias="0.13" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.23000002" />
 
     <TextView
         android:id="@+id/status"
         style="@style/ThemeOverlay.MyTextDetail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/signed_out"
+        android:text="Sign in with Google Account"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -69,6 +56,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/status"
+        app:layout_constraintVertical_bias="0.16000003"
         tools:visibility="gone" />
 
     <Button

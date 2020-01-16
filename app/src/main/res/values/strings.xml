@@ -3,7 +3,7 @@
 
     <string name="google_title_text">Google Sign In</string>
     <string name="sign_out">Sign Out</string>
-    <string name="signed_out">Signed Out</string>
+    <string name="signed_out">Sign in with Google Account</string>
     <string name="sign_in">Sign In</string>
     <string name="signed_in">Signed In</string>
     <string name="disconnect">Disconnect</string>

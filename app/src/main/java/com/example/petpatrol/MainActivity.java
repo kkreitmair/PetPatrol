@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProviders;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -25,10 +26,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FloatingActionButton exitButton;
     private Button lostButton;
     private Button foundButton;
+    private SearchFilterViewModel model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        model = ViewModelProviders.of(this).get(SearchFilterViewModel.class);
         setContentView(R.layout.main_view);
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
@@ -77,14 +80,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int i = v.getId();
         Log.w("onClick", "Id: " + i);
         if (i == R.id.lostButton) {
+            model.setFilter(this, null, null, null, null, null, null, null,
+                    "lost");
             switchFragment(lostFragment);
-            lostButton.setBackgroundColor(getResources().getColor(R.color.grey_500));
-            foundButton.setBackgroundColor(getResources().getColor(R.color.grey_300));
+            lostButton.setBackgroundColor(getResources().getColor(R.color.petpatrol_default));
+            foundButton.setBackgroundColor(getResources().getColor(R.color.petpatrol_default_light));
         }
         if (i == R.id.foundButton) {
+            model.setFilter(this, null, null, null, null, null, null, null,
+                    "found");
             switchFragment(foundFragment);
-            lostButton.setBackgroundColor(getResources().getColor(R.color.grey_300));
-            foundButton.setBackgroundColor(getResources().getColor(R.color.grey_500));
+            lostButton.setBackgroundColor(getResources().getColor(R.color.petpatrol_default_light));
+            foundButton.setBackgroundColor(getResources().getColor(R.color.petpatrol_default));
         }
         if (i == R.id.menuSignOut) {
             Log.w("onClick", "Testing");

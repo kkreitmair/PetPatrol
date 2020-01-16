@@ -12,31 +12,28 @@
         android:id="@+id/advert"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#ACA8A9"
+        android:background="#FFEBEE"
         android:clickable="true">
 
         <ImageView
             android:id="@+id/advert_image_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="@dimen/basic_margin"
             android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="32dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginBottom="32dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.338"
-            app:srcCompat="@drawable/firebase_lockup_400" />
+            app:srcCompat="@drawable/ic_image" />
 
         <TextView
             android:id="@+id/advert_title_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/basic_margin"
+            android:layout_margin="@dimen/basic_margin"
             android:text="new Text"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"

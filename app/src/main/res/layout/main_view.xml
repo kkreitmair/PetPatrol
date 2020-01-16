@@ -13,7 +13,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimaryDark"
+        android:background="@color/petpatrol_default"
         android:minHeight="?attr/actionBarSize"
         app:layout_constraintTop_toTopOf="parent"
         app:titleTextColor="@android:color/white"></androidx.appcompat.widget.Toolbar>
@@ -22,9 +22,10 @@
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:background="@color/petpatrol_default_light"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" >
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/floatingExitButton"
@@ -34,6 +35,7 @@
             android:layout_margin="@dimen/basic_margin"
             android:clickable="true"
             android:visibility="gone"
+            app:backgroundTint="@color/petpatrol_grey_300"
             custom:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -43,6 +45,7 @@
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/basic_margin"
             android:clickable="true"
+            app:backgroundTint="@color/petpatrol_grey_300"
             custom:srcCompat="@android:drawable/ic_input_add" />
     </FrameLayout>
 
@@ -62,13 +65,14 @@
             android:layout_height="wrap_content"
             android:layout_margin="0dp"
             android:layout_weight="1"
-            android:background="@color/grey_500"
+            android:background="@color/petpatrol_default"
+            android:clickable="true"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:padding="0dp"
             android:text="@string/lost"
+            android:textColor="@android:color/white"
             android:textStyle="bold"
-            android:clickable="true"
             app:cornerRadius="0dp"
             app:rippleColor="#33AAAAAA"
             app:strokeColor="@color/black"
@@ -80,12 +84,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@color/grey_300"
+            android:background="@color/petpatrol_default_light"
+            android:clickable="true"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:text="@string/found"
+            android:textColor="@android:color/white"
             android:textStyle="bold"
-            android:clickable="true"
             app:cornerRadius="0dp"
             app:rippleColor="#33AAAAAA"
             app:strokeColor="@color/black"

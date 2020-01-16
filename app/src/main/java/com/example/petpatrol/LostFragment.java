@@ -57,7 +57,7 @@ public class LostFragment extends Fragment {
 
         firestoreDB = FirebaseFirestore.getInstance();
 
-        View view = inflater.inflate(R.layout.fragment_lost, parent, false);
+        View view = inflater.inflate(R.layout.fragment_adverts, parent, false);
 
         advertContainer = view.findViewById(R.id.lost_advert_container);
 
