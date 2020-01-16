@@ -112,12 +112,7 @@ public class LostFragment extends Fragment {
                         Log.d(TAG,"card clicked");
                         Bundle arguments = new Bundle();
 
-                        arguments.putString("animal", model.getAnimal());
-                        arguments.putString("color", model.getColor());
-                        arguments.putString("size", model.getSize());
-                        arguments.putString("tag", model.getTag());
-                        arguments.putString("tagType", model.getTagType());
-                        arguments.putParcelable("position", model.getPosition());
+                        arguments.putParcelable("advert", model);
                         arguments.putParcelable("image", holder.getImageBitmap());
 
                         Fragment detailedAdvert = new DetailedAnimalFragment();

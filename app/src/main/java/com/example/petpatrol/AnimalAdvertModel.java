@@ -1,12 +1,14 @@
 package com.example.petpatrol;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.HashMap;
 
-public class AnimalAdvertModel {
+public class AnimalAdvertModel implements Parcelable{
     private String title  = "";
     private String animal  = "";
     private String image  = "";
@@ -99,5 +101,45 @@ public class AnimalAdvertModel {
 
     public LatLng getPosition() {
         return position;
+    }
+
+    @Override
+    public int describeContents() {
+// ignore for now
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel pc, int flags) {
+        pc.writeString(title);
+        pc.writeString(animal);
+        pc.writeString(image);
+        pc.writeString(color);
+        pc.writeString(size);
+        pc.writeString(tag);
+        pc.writeString(tagType);
+        pc.writeParcelable(position, flags);
+    }
+
+    /** Static field used to regenerate object, individually or as arrays */
+    public static final Parcelable.Creator<AnimalAdvertModel> CREATOR = new Parcelable.Creator<AnimalAdvertModel>() {
+        public AnimalAdvertModel createFromParcel(Parcel pc) {
+            return new AnimalAdvertModel(pc);
+        }
+        public AnimalAdvertModel[] newArray(int size) {
+            return new AnimalAdvertModel[size];
+        }
+    };
+
+    /**Ctor from Parcel, reads back fields IN THE ORDER they were written */
+    public AnimalAdvertModel(Parcel pc){
+        title = pc.readString();
+        animal =  pc.readString();
+        image = pc.readString();
+        color = pc.readString();
+        size = pc.readString();
+        tag = pc.readString();
+        tagType = pc.readString();
+        position = pc.readParcelable(ClassLoader.getSystemClassLoader());
     }
 }

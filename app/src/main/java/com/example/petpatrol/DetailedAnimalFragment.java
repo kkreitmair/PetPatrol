@@ -68,20 +68,17 @@ public class DetailedAnimalFragment extends Fragment implements OnMapReadyCallba
         TextView tagTypeText = fragment.findViewById(R.id.detailed_animal_tag_type);
         TextView tagText = fragment.findViewById(R.id.detailed_animal_tag);
 
-        String animal = getArguments().getString("animal");
-        String color = getArguments().getString("color");
-        String size = getArguments().getString("size");
-        String tag = getArguments().getString("tag");
-        String tagType = getArguments().getString("tagType");
-        animalLocation = getArguments().getParcelable("position");
+        AnimalAdvertModel advert = (AnimalAdvertModel) getArguments().getParcelable("advert");
         Bitmap bitmap = getArguments().getParcelable("image");
 
         image.setImageBitmap(bitmap);
-        animalText.setText(getString(R.string.label_animal) + " " + animal);
-        colorText.setText(getString(R.string.label_color) + " " + color);
-        sizeText.setText(getString(R.string.label_size) + " " + size);
-        tagTypeText.setText(getString(R.string.label_tag_type) + " " + tagType);
-        tagText.setText(getString(R.string.label_tag) + " " + tag);
+
+        animalLocation = advert.getPosition();
+        animalText.setText(getString(R.string.label_animal) + " " + advert.getAnimal());
+        colorText.setText(getString(R.string.label_color) + " " + advert.getColor());
+        sizeText.setText(getString(R.string.label_size) + " " + advert.getSize());
+        tagTypeText.setText(getString(R.string.label_tag_type) + " " + advert.getTagType());
+        tagText.setText(getString(R.string.label_tag) + " " + advert.getTag());
 
         return view;
     }
@@ -108,24 +105,6 @@ public class DetailedAnimalFragment extends Fragment implements OnMapReadyCallba
         map.addCircle(new CircleOptions().center(animalLocation).radius(2500.0)).setStrokeColor(Color.RED);
         map.addMarker(new MarkerOptions().position(animalLocation));
         map.moveCamera(CameraUpdateFactory.newLatLngZoom( animalLocation, 10));
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        // Setup any handles to view objects here
-        // EditText etFoo = (EditText) view.findViewById(R.id.etFoo);
-//        FrameLayout foundLayout = (FrameLayout) view.getParent();
-//        FloatingActionButton addButton = foundLayout.findViewById(R.id.floatingAddButton);
-//        addButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                LayoutInflater inflater = getActivity().getLayoutInflater();
-//                View advert = inflater.inflate(R.layout.advert, null);
-//                TextView text = advert.findViewById(R.id.textView);
-//                text.setText("new test (add Button)");
-//                fragmentContainer.addView(advert, fragmentContainer.getChildCount());
-//            }
-//        });
     }
 
     @Override

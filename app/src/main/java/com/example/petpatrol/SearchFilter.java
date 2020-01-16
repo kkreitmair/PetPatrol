@@ -76,6 +76,12 @@ public class SearchFilter {
     }
 
     public void setTag(String tag) {
+        if (tag != null) {
+            if (!tag.equals("")) {
+                this.tag = tag;
+                return;
+            }
+        }
         this.tag = null;
     }
 
